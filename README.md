@@ -102,7 +102,17 @@ contador editable por jugador. La regla está implementada en
 por la función `create_game` del schema — el cliente nunca es la única
 fuente de verdad para esto.
 
-## Deploy gratuito
+## Deploy
 
-Pendiente para la etapa siguiente: Cloudflare Pages/Workers o Vercel Hobby,
-con subdominio gratuito (sin comprar dominio propio durante el MVP).
+**https://catanero.vercel.app** — Vercel Hobby (plan gratuito, sin tarjeta),
+subdominio gratuito de Vercel (no se compró dominio propio). Cada push a
+`main` en GitHub redespliega automáticamente.
+
+Variables de entorno configuradas en el proyecto de Vercel (Settings →
+Environment Variables): las mismas dos de `.env.local`. Si se rota la
+`anon key` en Supabase, hay que actualizarla también ahí.
+
+El `Site URL` y los `Redirect URLs` de Supabase (Authentication → URL
+Configuration) incluyen tanto `https://catanero.vercel.app` como
+`http://localhost:3210`, para que la confirmación de email funcione en
+ambos entornos.
