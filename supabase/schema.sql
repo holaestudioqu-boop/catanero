@@ -246,6 +246,72 @@ revoke all on function create_game(uuid, text, jsonb) from public;
 grant execute on function create_game(uuid, text, jsonb) to authenticated;
 
 -- ============================================================
+-- Invitar jugadores: get_league_preview + join_league.
+-- Un usuario autenticado que no es miembro no puede leer "leagues" por
+-- RLS, así que necesita una vía explícita para ver el nombre de una
+-- liga por slug antes de decidir sumarse, y para sumarse siempre como
+-- "player" (nunca admin) sin pasar por la policy de insert de
+-- league_members, que exige ya ser admin.
+-- ============================================================
+
+create or replace function get_league_preview(p_slug text)
+returns table (
+  id uuid,
+  name text,
+  slug text,
+  player_count bigint,
+  already_member boolean
+)
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  return query
+    select
+      l.id,
+      l.name,
+      l.slug,
+      (select count(*) from players p where p.league_id = l.id),
+      exists (
+        select 1 from league_members lm
+        where lm.league_id = l.id and lm.user_id = auth.uid()
+      )
+    from leagues l
+    where l.slug = p_slug;
+end;
+$$;
+
+revoke all on function get_league_preview(text) from public;
+grant execute on function get_league_preview(text) to anon, authenticated;
+
+create or replace function join_league(p_slug text)
+returns uuid
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_league_id uuid;
+begin
+  select id into v_league_id from leagues where slug = p_slug;
+
+  if v_league_id is null then
+    raise exception 'No encontramos esa liga';
+  end if;
+
+  insert into league_members (league_id, user_id, role)
+  values (v_league_id, auth.uid(), 'player')
+  on conflict (league_id, user_id) do nothing;
+
+  return v_league_id;
+end;
+$$;
+
+revoke all on function join_league(text) from public;
+grant execute on function join_league(text) to authenticated;
+
+-- ============================================================
 -- Row Level Security
 -- ============================================================
 

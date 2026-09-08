@@ -7,7 +7,7 @@ import { signIn, signUp, type AuthActionState } from "@/app/login/actions";
 
 const INITIAL_STATE: AuthActionState = { status: "idle", message: null };
 
-export function LoginForm() {
+export function LoginForm({ next }: { next?: string }) {
   const [mode, setMode] = useState<"login" | "signup">("login");
   const [loginState, loginAction, loginPending] = useActionState(signIn, INITIAL_STATE);
   const [signupState, signupAction, signupPending] = useActionState(signUp, INITIAL_STATE);
@@ -27,6 +27,7 @@ export function LoginForm() {
       </div>
 
       <form action={mode === "login" ? loginAction : signupAction} className="flex flex-col gap-3">
+        {next ? <input type="hidden" name="next" value={next} /> : null}
         {mode === "signup" ? (
           <Field label="Nombre" htmlFor="displayName">
             <input

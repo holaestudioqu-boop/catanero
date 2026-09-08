@@ -166,6 +166,20 @@ export interface Database {
         };
         Returns: string;
       };
+      get_league_preview: {
+        Args: { p_slug: string };
+        Returns: {
+          id: string;
+          name: string;
+          slug: string;
+          player_count: number;
+          already_member: boolean;
+        }[];
+      };
+      join_league: {
+        Args: { p_slug: string };
+        Returns: string;
+      };
     };
     Enums: Record<string, never>;
     CompositeTypes: Record<string, never>;

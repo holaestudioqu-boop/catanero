@@ -10,12 +10,19 @@ export interface AuthActionState {
   message: string | null;
 }
 
+/** Solo rutas internas: evita que "next" se use para redirigir a un sitio externo. */
+function safeNextPath(raw: FormDataEntryValue | null): string {
+  const value = String(raw ?? "");
+  return value.startsWith("/") && !value.startsWith("//") ? value : "/dashboard";
+}
+
 export async function signIn(
   _prevState: AuthActionState,
   formData: FormData
 ): Promise<AuthActionState> {
   const email = String(formData.get("email") ?? "").trim();
   const password = String(formData.get("password") ?? "");
+  const next = safeNextPath(formData.get("next"));
 
   if (!email || !password) {
     return { status: "error", message: "Completá tu email y contraseña." };
@@ -29,7 +36,7 @@ export async function signIn(
   }
 
   revalidatePath("/", "layout");
-  redirect("/dashboard");
+  redirect(next);
 }
 
 export async function signUp(
@@ -39,6 +46,7 @@ export async function signUp(
   const email = String(formData.get("email") ?? "").trim();
   const password = String(formData.get("password") ?? "");
   const displayName = String(formData.get("displayName") ?? "").trim();
+  const next = safeNextPath(formData.get("next"));
 
   if (!displayName) {
     return { status: "error", message: "Ingresá tu nombre." };
@@ -56,7 +64,7 @@ export async function signUp(
     password,
     options: {
       data: { display_name: displayName },
-      emailRedirectTo: `${origin}/auth/confirm`,
+      emailRedirectTo: `${origin}/auth/confirm?next=${encodeURIComponent(next)}`,
     },
   });
 

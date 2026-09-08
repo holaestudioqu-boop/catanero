@@ -3,14 +3,25 @@ import { redirect } from "next/navigation";
 import { LoginForm } from "@/components/auth/LoginForm";
 import { createClient } from "@/lib/supabase/server";
 
-export default async function LoginPage() {
+function safeNextPath(raw: string | undefined): string | undefined {
+  return raw && raw.startsWith("/") && !raw.startsWith("//") ? raw : undefined;
+}
+
+export default async function LoginPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ next?: string }>;
+}) {
+  const { next: rawNext } = await searchParams;
+  const next = safeNextPath(rawNext);
+
   const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
 
   if (user) {
-    redirect("/dashboard");
+    redirect(next ?? "/dashboard");
   }
 
   return (
@@ -65,7 +76,7 @@ export default async function LoginPage() {
             Iniciá sesión o creá una cuenta para armar tu liga.
           </p>
           <div className="mt-8">
-            <LoginForm />
+            <LoginForm next={next} />
           </div>
         </div>
       </div>

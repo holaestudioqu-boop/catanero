@@ -65,6 +65,22 @@ jugador, cambiar configuración) requiere `role = 'admin'` en esa liga. Las
 funciones `is_league_member()` e `is_league_admin()` en el schema
 encapsulan esa verificación para no repetirla en cada policy.
 
+## Invitar jugadores registrados a una liga
+
+Solo quien crea una liga queda como admin (vía el trigger
+`on_league_created`); no hay otra forma de sumar un usuario registrado a
+`league_members`. Para eso existen dos funciones adicionales:
+
+- `get_league_preview(slug)`: devuelve nombre y cantidad de jugadores de
+  una liga por slug, sin exponer jugadores ni partidas. Grant a `anon` y
+  `authenticated` para poder mostrarlo antes de loguearse.
+- `join_league(slug)`: agrega al usuario autenticado como `player` de esa
+  liga (nunca `admin`). Grant solo a `authenticated`.
+
+El flujo público es `/join/[slug]`: el admin comparte ese link, quien lo
+abre ve el preview, y si no tiene cuenta pasa por `/login?next=/join/[slug]`
+para volver automáticamente después de registrarse o iniciar sesión.
+
 ## Aplicar el schema
 
 1. Crear un proyecto nuevo en [supabase.com](https://supabase.com) (plan Free).

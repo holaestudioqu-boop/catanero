@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { LinkButton } from "@/components/ui/LinkButton";
 import { GameSummaryCard } from "@/components/league/GameSummaryCard";
+import { InviteLinkButton } from "@/components/league/InviteLinkButton";
 import { RankingTable } from "@/components/league/RankingTable";
 import { buildPlayerStats } from "@/lib/domain/ranking";
 import { formatPointsPlain } from "@/lib/format";
@@ -75,9 +76,10 @@ export default async function LeagueHomePage({
           ) : null}
 
           {role === "admin" ? (
-            <LinkButton href={`/league/${slug}/new-game`} className="mt-5 self-start">
-              + Registrar partida
-            </LinkButton>
+            <div className="mt-5 flex flex-wrap gap-2">
+              <LinkButton href={`/league/${slug}/new-game`}>+ Registrar partida</LinkButton>
+              <InviteLinkButton slug={slug} />
+            </div>
           ) : null}
         </div>
       </div>
