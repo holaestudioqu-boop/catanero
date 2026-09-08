@@ -3,7 +3,13 @@ import { EmptyState } from "@/components/ui/EmptyState";
 import { PlayerProfile } from "@/components/league/PlayerProfile";
 import { buildPlayerStats } from "@/lib/domain/ranking";
 import { calculateRankingPoints } from "@/lib/domain/scoring";
-import { getGames, getLeagueBySlug, getMembership, getPlayers } from "@/lib/data/leagues";
+import {
+  getGames,
+  getLeagueBySlug,
+  getMembership,
+  getPlayerAccountInfo,
+  getPlayers,
+} from "@/lib/data/leagues";
 import { createClient } from "@/lib/supabase/server";
 
 export default async function PlayerProfilePage({
@@ -21,10 +27,11 @@ export default async function PlayerProfilePage({
   } = await supabase.auth.getUser();
   if (!user) return null;
 
-  const [role, players, games] = await Promise.all([
+  const [role, players, games, account] = await Promise.all([
     getMembership(league.id, user.id),
     getPlayers(league.id),
     getGames(league.id),
+    getPlayerAccountInfo(league.id, playerId),
   ]);
 
   const player = players.find((p) => p.id === playerId);
@@ -46,6 +53,11 @@ export default async function PlayerProfilePage({
     return cumulative;
   });
 
+  const roleControl =
+    role === "admin" && account.role && account.userId && account.userId !== user.id
+      ? { leagueId: league.id, userId: account.userId, currentRole: account.role }
+      : null;
+
   return (
     <PlayerProfile
       slug={slug}
@@ -55,6 +67,7 @@ export default async function PlayerProfilePage({
       recentGames={recentGames}
       pointsHistory={pointsHistory}
       canDelete={role === "admin"}
+      roleControl={roleControl}
     />
   );
 }

@@ -180,6 +180,10 @@ export interface Database {
         Args: { p_slug: string };
         Returns: string;
       };
+      set_member_role: {
+        Args: { p_league_id: string; p_user_id: string; p_role: LeagueRole };
+        Returns: undefined;
+      };
     };
     Enums: Record<string, never>;
     CompositeTypes: Record<string, never>;

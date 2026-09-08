@@ -85,6 +85,33 @@ export const getPlayerForUser = cache(
   }
 );
 
+export interface PlayerAccountInfo {
+  userId: string | null;
+  role: LeagueRole | null;
+}
+
+export const getPlayerAccountInfo = cache(
+  async (leagueId: string, playerId: string): Promise<PlayerAccountInfo> => {
+    const supabase = await createClient();
+    const { data: player } = await supabase
+      .from("players")
+      .select("user_id")
+      .eq("id", playerId)
+      .maybeSingle();
+
+    if (!player?.user_id) return { userId: null, role: null };
+
+    const { data: membership } = await supabase
+      .from("league_members")
+      .select("role")
+      .eq("league_id", leagueId)
+      .eq("user_id", player.user_id)
+      .maybeSingle();
+
+    return { userId: player.user_id, role: (membership?.role as LeagueRole | undefined) ?? null };
+  }
+);
+
 export const getPlayers = cache(async (leagueId: string): Promise<Player[]> => {
   const supabase = await createClient();
   const { data } = await supabase

@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import type { LeagueRole } from "@/lib/supabase/types";
 
 export interface AddPlayerState {
   error: string | null;
@@ -54,6 +55,35 @@ export async function deletePlayer(
 
   revalidatePath(`/league/${slug}/players`);
   redirect(`/league/${slug}/players`);
+}
+
+export interface SetMemberRoleState {
+  error: string | null;
+}
+
+export async function setMemberRole(
+  leagueId: string,
+  userId: string,
+  role: LeagueRole,
+  slug: string,
+  playerId: string,
+  _prevState: SetMemberRoleState,
+  _formData: FormData
+): Promise<SetMemberRoleState> {
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("set_member_role", {
+    p_league_id: leagueId,
+    p_user_id: userId,
+    p_role: role,
+  });
+
+  if (error) {
+    return { error: "No se pudo cambiar el rol. ¿Tenés permisos de administrador?" };
+  }
+
+  revalidatePath(`/league/${slug}/players/${playerId}`);
+  revalidatePath(`/league/${slug}/players`);
+  return { error: null };
 }
 
 export interface CreateGameResultInput {

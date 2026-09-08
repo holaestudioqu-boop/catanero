@@ -312,6 +312,40 @@ revoke all on function join_league(text) from public;
 grant execute on function join_league(text) to authenticated;
 
 -- ============================================================
+-- set_member_role: promover/degradar a un miembro registrado dentro
+-- de su liga. Solo un admin puede llamarla, y no puede usarla sobre
+-- sí mismo (para no quedarse afuera de su propia liga sin querer).
+-- ============================================================
+
+create or replace function set_member_role(
+  p_league_id uuid,
+  p_user_id uuid,
+  p_role league_role
+)
+returns void
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  if not is_league_admin(p_league_id) then
+    raise exception 'No tenés permisos de administrador en esta liga';
+  end if;
+
+  if p_user_id = auth.uid() then
+    raise exception 'No podés cambiar tu propio rol';
+  end if;
+
+  update league_members
+  set role = p_role
+  where league_id = p_league_id and user_id = p_user_id;
+end;
+$$;
+
+revoke all on function set_member_role(uuid, uuid, league_role) from public;
+grant execute on function set_member_role(uuid, uuid, league_role) to authenticated;
+
+-- ============================================================
 -- Row Level Security
 -- ============================================================
 

@@ -81,6 +81,16 @@ El flujo público es `/join/[slug]`: el admin comparte ese link, quien lo
 abre ve el preview, y si no tiene cuenta pasa por `/login?next=/join/[slug]`
 para volver automáticamente después de registrarse o iniciar sesión.
 
+## Promover/degradar admins
+
+`set_member_role(league_id, user_id, role)`: cambia el rol de un miembro
+ya registrado en `league_members`. Solo puede llamarla un admin de esa
+liga, y no puede usarla sobre sí mismo (para no quedarse afuera de su
+propia liga por error). El botón "Hacer admin" / "Quitar admin" vive en
+el perfil de cada jugador (`/league/[slug]/players/[playerId]`) y solo
+aparece si ese jugador tiene una cuenta vinculada (`players.user_id` no
+nulo) y no es el usuario que está mirando la pantalla.
+
 ## Aplicar el schema
 
 1. Crear un proyecto nuevo en [supabase.com](https://supabase.com) (plan Free).
