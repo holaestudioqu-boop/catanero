@@ -75,8 +75,18 @@ export async function deleteLeague(
   _formData: FormData
 ): Promise<DeleteLeagueState> {
   const supabase = await createClient();
-  const { error } = await supabase.from("leagues").delete().eq("id", leagueId);
 
+  // Se borran las partidas primero: si se dejara todo en cascada al borrar
+  // la liga, Postgres puede intentar borrar "players" antes que "games"/
+  // "game_results", y game_results.player_id tiene "on delete restrict"
+  // (a propósito, para proteger el historial cuando se borra un jugador
+  // suelto). Borrando "games" acá se libera esa restricción de antemano.
+  const { error: gamesError } = await supabase.from("games").delete().eq("league_id", leagueId);
+  if (gamesError) {
+    return { error: "No se pudo eliminar la liga. ¿Tenés permisos de administrador?" };
+  }
+
+  const { error } = await supabase.from("leagues").delete().eq("id", leagueId);
   if (error) {
     return { error: "No se pudo eliminar la liga. ¿Tenés permisos de administrador?" };
   }
