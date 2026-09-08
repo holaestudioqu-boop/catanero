@@ -1,5 +1,6 @@
 "use server";
 
+import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 
@@ -62,4 +63,24 @@ export async function createLeague(
   }
 
   redirect(`/league/${createdSlug}`);
+}
+
+export interface DeleteLeagueState {
+  error: string | null;
+}
+
+export async function deleteLeague(
+  leagueId: string,
+  _prevState: DeleteLeagueState,
+  _formData: FormData
+): Promise<DeleteLeagueState> {
+  const supabase = await createClient();
+  const { error } = await supabase.from("leagues").delete().eq("id", leagueId);
+
+  if (error) {
+    return { error: "No se pudo eliminar la liga. ¿Tenés permisos de administrador?" };
+  }
+
+  revalidatePath("/dashboard");
+  return { error: null };
 }

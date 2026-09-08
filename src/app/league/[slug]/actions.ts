@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 
 export interface AddPlayerState {
@@ -29,6 +30,30 @@ export async function addPlayer(
 
   revalidatePath(`/league/${slug}/players`);
   return { error: null };
+}
+
+export interface DeletePlayerState {
+  error: string | null;
+}
+
+export async function deletePlayer(
+  playerId: string,
+  slug: string,
+  _prevState: DeletePlayerState,
+  _formData: FormData
+): Promise<DeletePlayerState> {
+  const supabase = await createClient();
+  const { error } = await supabase.from("players").delete().eq("id", playerId);
+
+  if (error) {
+    const message = error.code === "23503"
+      ? "No se puede eliminar: este jugador ya tiene partidas registradas."
+      : "No se pudo eliminar el jugador. ¿Tenés permisos de administrador?";
+    return { error: message };
+  }
+
+  revalidatePath(`/league/${slug}/players`);
+  redirect(`/league/${slug}/players`);
 }
 
 export interface CreateGameResultInput {

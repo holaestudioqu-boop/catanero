@@ -1,7 +1,7 @@
 import Image from "next/image";
-import Link from "next/link";
 import { redirect } from "next/navigation";
 import { CreateLeagueForm } from "@/components/dashboard/CreateLeagueForm";
+import { LeagueCard } from "@/components/dashboard/LeagueCard";
 import { getUserLeagues } from "@/lib/data/leagues";
 import { createClient } from "@/lib/supabase/server";
 import { signOut } from "@/app/login/actions";
@@ -49,18 +49,7 @@ export default async function DashboardPage() {
             {leagues.length > 0 ? (
               <div className="mt-8 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
                 {leagues.map((league) => (
-                  <Link
-                    key={league.id}
-                    href={`/league/${league.slug}`}
-                    className="rounded-[var(--radius-sm)] bg-carbon-sec p-5 transition-colors hover:bg-white/5"
-                  >
-                    <p className="text-[15px] font-medium text-crema">{league.name}</p>
-                    <p className="mt-3 text-sm text-crema/50">
-                      {league.playerCount}{" "}
-                      {league.playerCount === 1 ? "jugador" : "jugadores"} ·{" "}
-                      {league.role === "admin" ? "Admin" : "Jugador"}
-                    </p>
-                  </Link>
+                  <LeagueCard key={league.id} league={league} />
                 ))}
               </div>
             ) : (

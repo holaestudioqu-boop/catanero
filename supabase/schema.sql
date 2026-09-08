@@ -344,6 +344,9 @@ create policy "insert_leagues_authenticated" on leagues for insert
 drop policy if exists "update_leagues_as_admin" on leagues;
 create policy "update_leagues_as_admin" on leagues for update
   using (is_league_admin(id));
+drop policy if exists "delete_leagues_as_admin" on leagues;
+create policy "delete_leagues_as_admin" on leagues for delete
+  using (is_league_admin(id));
 
 -- league_members: visible para miembros de la misma liga; solo admin gestiona membresías.
 drop policy if exists "select_members_as_member" on league_members;
@@ -365,6 +368,13 @@ create policy "insert_players_as_admin" on players for insert
   with check (is_league_admin(league_id));
 drop policy if exists "update_players_as_admin" on players;
 create policy "update_players_as_admin" on players for update
+  using (is_league_admin(league_id));
+-- Sin policy explícita de delete, un admin no podía sacar un jugador cargado
+-- por error. game_results.player_id referencia players(id) on delete restrict,
+-- así que un jugador con partidas registradas sigue sin poder borrarse: la
+-- policy solo habilita el intento, la integridad la sigue garantizando la FK.
+drop policy if exists "delete_players_as_admin" on players;
+create policy "delete_players_as_admin" on players for delete
   using (is_league_admin(league_id));
 
 -- games: visibles para miembros; solo admin crea/edita/elimina.

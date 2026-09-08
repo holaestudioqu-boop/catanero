@@ -3,7 +3,8 @@ import { EmptyState } from "@/components/ui/EmptyState";
 import { PlayerProfile } from "@/components/league/PlayerProfile";
 import { buildPlayerStats } from "@/lib/domain/ranking";
 import { calculateRankingPoints } from "@/lib/domain/scoring";
-import { getGames, getLeagueBySlug, getPlayers } from "@/lib/data/leagues";
+import { getGames, getLeagueBySlug, getMembership, getPlayers } from "@/lib/data/leagues";
+import { createClient } from "@/lib/supabase/server";
 
 export default async function PlayerProfilePage({
   params,
@@ -14,7 +15,17 @@ export default async function PlayerProfilePage({
   const league = await getLeagueBySlug(slug);
   if (!league) notFound();
 
-  const [players, games] = await Promise.all([getPlayers(league.id), getGames(league.id)]);
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return null;
+
+  const [role, players, games] = await Promise.all([
+    getMembership(league.id, user.id),
+    getPlayers(league.id),
+    getGames(league.id),
+  ]);
 
   const player = players.find((p) => p.id === playerId);
   if (!player) {
@@ -43,6 +54,7 @@ export default async function PlayerProfilePage({
       position={position}
       recentGames={recentGames}
       pointsHistory={pointsHistory}
+      canDelete={role === "admin"}
     />
   );
 }

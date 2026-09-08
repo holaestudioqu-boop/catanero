@@ -3,6 +3,7 @@ import { Card } from "@/components/ui/Card";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { PositionBadge } from "@/components/ui/PositionBadge";
 import { Sparkline } from "@/components/ui/Sparkline";
+import { DeletePlayerButton } from "@/components/league/DeletePlayerButton";
 import { PointsPill } from "@/components/league/PointsPill";
 import { calculateRankingPoints } from "@/lib/domain/scoring";
 import { formatAverage, formatDateShort, formatPercent, formatPointsPlain } from "@/lib/format";
@@ -15,6 +16,7 @@ interface PlayerProfileProps {
   position: number;
   recentGames: Game[];
   pointsHistory: number[];
+  canDelete: boolean;
 }
 
 export function PlayerProfile({
@@ -24,6 +26,7 @@ export function PlayerProfile({
   position,
   recentGames,
   pointsHistory,
+  canDelete,
 }: PlayerProfileProps) {
   const initial = player.displayName.charAt(0).toUpperCase();
   const isLeader = stats.gamesPlayed > 0 && position === 1;
@@ -115,6 +118,12 @@ export function PlayerProfile({
           </section>
         </>
       )}
+
+      {canDelete ? (
+        <div className="border-t border-border pt-4">
+          <DeletePlayerButton playerId={player.id} slug={slug} />
+        </div>
+      ) : null}
     </div>
   );
 }
