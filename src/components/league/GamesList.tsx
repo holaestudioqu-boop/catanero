@@ -1,6 +1,6 @@
 import { EmptyState } from "@/components/ui/EmptyState";
 import { LinkButton } from "@/components/ui/LinkButton";
-import { GameSummaryCard } from "@/components/league/GameSummaryCard";
+import { GameHistoryRow } from "@/components/league/GameHistoryRow";
 import type { Game, Player } from "@/lib/domain/types";
 
 interface GamesListProps {
@@ -13,10 +13,16 @@ interface GamesListProps {
 export function GamesList({ slug, players, games, canRegister }: GamesListProps) {
   return (
     <div className="flex flex-col gap-4">
-      <h1 className="text-xl font-semibold">Partidas</h1>
+      <div>
+        <p className="text-xs font-medium tracking-[0.08em] text-muted uppercase">Partidas</p>
+        <h1 className="font-editorial mt-1 text-3xl text-foreground">
+          Los capítulos de esta temporada.
+        </h1>
+      </div>
+
       {games.length === 0 ? (
         <EmptyState
-          title="Todavía no jugaron ninguna partida."
+          title="Todavía no empezó la historia."
           description={
             canRegister
               ? "Registrá la primera partida de la liga."
@@ -29,9 +35,9 @@ export function GamesList({ slug, players, games, canRegister }: GamesListProps)
           }
         />
       ) : (
-        <div className="flex flex-col gap-3">
+        <div className="flex flex-col gap-2">
           {games.map((game) => (
-            <GameSummaryCard key={game.id} slug={slug} game={game} players={players} />
+            <GameHistoryRow key={game.id} slug={slug} game={game} players={players} />
           ))}
         </div>
       )}

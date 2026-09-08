@@ -17,7 +17,7 @@ export function LoginForm() {
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="flex rounded-2xl border border-border bg-surface p-1">
+      <div className="flex rounded-[var(--radius-control)] border border-border bg-surface p-1">
         <TabButton active={mode === "login"} onClick={() => setMode("login")}>
           Iniciar sesión
         </TabButton>
@@ -34,19 +34,19 @@ export function LoginForm() {
               name="displayName"
               required
               autoComplete="name"
-              className="h-12 w-full rounded-xl border border-border bg-background px-4 text-[15px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+              className="h-12 w-full rounded-[var(--radius-control)] border border-border bg-white px-4 text-[15px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
             />
           </Field>
         ) : null}
 
-        <Field label="Email" htmlFor="email">
+        <Field label="Correo electrónico" htmlFor="email">
           <input
             id="email"
             name="email"
             type="email"
             required
             autoComplete="email"
-            className="h-12 w-full rounded-xl border border-border bg-background px-4 text-[15px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+            className="h-12 w-full rounded-[var(--radius-control)] border border-border bg-white px-4 text-[15px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
           />
         </Field>
 
@@ -58,7 +58,7 @@ export function LoginForm() {
             required
             minLength={6}
             autoComplete={mode === "login" ? "current-password" : "new-password"}
-            className="h-12 w-full rounded-xl border border-border bg-background px-4 text-[15px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+            className="h-12 w-full rounded-[var(--radius-control)] border border-border bg-white px-4 text-[15px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
           />
         </Field>
 
@@ -100,7 +100,7 @@ function TabButton({
       type="button"
       onClick={onClick}
       className={clsx(
-        "flex-1 rounded-xl px-4 py-2 text-sm font-medium transition-colors",
+        "flex-1 rounded-[var(--radius-control)] px-4 py-2 text-sm font-medium transition-colors",
         active ? "bg-primary text-primary-foreground" : "text-muted hover:text-foreground"
       )}
     >

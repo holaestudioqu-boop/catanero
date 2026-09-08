@@ -38,9 +38,11 @@ export default async function LeagueLayout({
   }
 
   return (
-    <div className="mx-auto flex min-h-dvh w-full max-w-md flex-col sm:max-w-2xl sm:border-x sm:border-border sm:shadow-sm lg:max-w-3xl">
-      <main className="flex-1 px-4 pb-28 pt-6 sm:px-6">{children}</main>
-      <BottomNav slug={slug} />
+    <div className="theme-liga min-h-dvh bg-background">
+      <div className="mx-auto flex min-h-dvh w-full max-w-md flex-col sm:max-w-2xl sm:border-x sm:border-border lg:max-w-3xl">
+        <main className="flex-1 px-4 pb-28 pt-6 sm:px-6">{children}</main>
+        <BottomNav slug={slug} />
+      </div>
     </div>
   );
 }

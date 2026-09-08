@@ -1,20 +1,27 @@
-import { clsx } from "@/lib/clsx";
+import { Hexagon } from "@/components/ui/Hexagon";
 
-const styles: Record<number, string> = {
-  1: "bg-[var(--gold-bg)] text-[var(--gold)]",
-  2: "bg-[var(--silver-bg)] text-[var(--silver)]",
-  3: "bg-[var(--bronze-bg)] text-[var(--bronze)]",
+const fillClasses: Record<number, string> = {
+  1: "fill-dorado",
+  2: "fill-arena",
+  3: "fill-terracota",
+};
+
+const textClasses: Record<number, string> = {
+  1: "text-carbon",
+  2: "text-carbon",
+  3: "text-crema",
 };
 
 export function PositionBadge({ position }: { position: number }) {
+  const isTopThree = position <= 3;
+
   return (
-    <span
-      className={clsx(
-        "inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-sm font-semibold",
-        styles[position] ?? "bg-black/[.05] text-muted dark:bg-white/[.08]"
-      )}
+    <Hexagon
+      fillClassName={isTopThree ? fillClasses[position] : "fill-none"}
+      textClassName={isTopThree ? textClasses[position] : "text-muted"}
+      strokeClassName={isTopThree ? undefined : "text-muted"}
     >
       {position}°
-    </span>
+    </Hexagon>
   );
 }

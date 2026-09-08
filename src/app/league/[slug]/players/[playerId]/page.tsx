@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { PlayerProfile } from "@/components/league/PlayerProfile";
 import { buildPlayerStats } from "@/lib/domain/ranking";
+import { calculateRankingPoints } from "@/lib/domain/scoring";
 import { getGames, getLeagueBySlug, getPlayers } from "@/lib/data/leagues";
 
 export default async function PlayerProfilePage({
@@ -20,10 +21,28 @@ export default async function PlayerProfilePage({
     return <EmptyState title="No encontramos a este jugador." />;
   }
 
-  const stats = buildPlayerStats(players, games).find((s) => s.playerId === playerId)!;
-  const recentGames = games
-    .filter((g) => g.results.some((r) => r.playerId === playerId))
-    .slice(0, 5);
+  const allStats = buildPlayerStats(players, games);
+  const stats = allStats.find((s) => s.playerId === playerId)!;
+  const position = allStats.findIndex((s) => s.playerId === playerId) + 1;
+  const playerGames = games.filter((g) => g.results.some((r) => r.playerId === playerId));
+  const recentGames = playerGames.slice(0, 5);
 
-  return <PlayerProfile slug={slug} player={player} stats={stats} recentGames={recentGames} />;
+  const chronological = [...playerGames].sort((a, b) => (a.playedAt < b.playedAt ? -1 : 1));
+  let cumulative = 0;
+  const pointsHistory = chronological.map((g) => {
+    const result = g.results.find((r) => r.playerId === playerId)!;
+    cumulative += calculateRankingPoints(result.position, g.results.length);
+    return cumulative;
+  });
+
+  return (
+    <PlayerProfile
+      slug={slug}
+      player={player}
+      stats={stats}
+      position={position}
+      recentGames={recentGames}
+      pointsHistory={pointsHistory}
+    />
+  );
 }

@@ -37,6 +37,9 @@ yarn-error.log*
 # vercel
 .vercel
 
+# assets de referencia de diseño (PDFs, PSD, fuentes completas, no van a producción)
+/diseño/
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts

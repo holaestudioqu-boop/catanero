@@ -1,24 +1,46 @@
 @import "tailwindcss";
 
+/*
+  Sistema visual "Crónicas". A diferencia de un dark mode automático por
+  preferencia de sistema, Catanero alterna de tema por SECCIÓN de la app:
+  - Editorial claro: landing, login, dashboard al entrar.
+  - Oscuro de liga: todo lo que pasa dentro de una liga.
+  Por eso estos tokens no dependen de prefers-color-scheme.
+*/
 :root {
-  --background: #f7f7f8;
-  --surface: #ffffff;
-  --foreground: #16181d;
-  --muted: #6b7280;
-  --border: #e5e7eb;
-  --primary: #4f46e5;
+  --carbon: #151512;
+  --carbon-sec: #24211e;
+  --crema: #f3e9d8;
+  --arena: #d8c3a4;
+  --naranja: #d75a24;
+  --terracota: #8e402a;
+  --dorado: #c69a47;
+
+  --background: var(--crema);
+  --surface: #faf6ee;
+  --foreground: var(--carbon);
+  --muted: #6f6656;
+  --border: var(--arena);
+  --primary: var(--naranja);
   --primary-foreground: #ffffff;
-  --accent: #0d9488;
-  --danger: #dc2626;
-  --gold: #b45309;
-  --gold-bg: #fef3c7;
-  --silver: #52525b;
-  --silver-bg: #f1f1f3;
-  --bronze: #9a3412;
-  --bronze-bg: #fdece1;
+  --accent: var(--terracota);
+  --danger: #b3261e;
+
+  --shadow-editorial: 0 8px 30px rgba(23, 20, 17, 0.1);
+  --radius-lg: 12px;
+  --radius-sm: 10px;
+  --radius-control: 8px;
 }
 
 @theme inline {
+  --color-carbon: var(--carbon);
+  --color-carbon-sec: var(--carbon-sec);
+  --color-crema: var(--crema);
+  --color-arena: var(--arena);
+  --color-naranja: var(--naranja);
+  --color-terracota: var(--terracota);
+  --color-dorado: var(--dorado);
+
   --color-background: var(--background);
   --color-surface: var(--surface);
   --color-foreground: var(--foreground);
@@ -28,24 +50,32 @@
   --color-primary-foreground: var(--primary-foreground);
   --color-accent: var(--accent);
   --color-danger: var(--danger);
+
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+  --font-editorial: var(--font-cormorant);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0e0f12;
-    --surface: #17191e;
-    --foreground: #f2f2f3;
-    --muted: #9aa0aa;
-    --border: #2a2d34;
-    --primary: #818cf8;
-    --primary-foreground: #0e0f12;
-    --accent: #2dd4bf;
-    --gold-bg: #3a2e10;
-    --silver-bg: #23252b;
-    --bronze-bg: #3a2416;
-  }
+/*
+  Modo oscuro de liga: se aplica envolviendo la sección con esta clase
+  (ver src/app/league/[slug]/layout.tsx), no vía prefers-color-scheme.
+*/
+.theme-liga {
+  --background: var(--carbon);
+  --surface: var(--carbon-sec);
+  --foreground: var(--crema);
+  --muted: rgba(243, 233, 216, 0.55);
+  --border: rgba(255, 255, 255, 0.1);
+  --primary: var(--naranja);
+  --primary-foreground: #ffffff;
+  --accent: var(--terracota);
+  --danger: #e57373;
+
+  /* `color` ya se resolvió a carbón en <body> antes de este punto: sin
+     esto, todo lo que no declare su propio color heredaría ese carbón
+     en vez de reevaluar --foreground acá. */
+  background: var(--background);
+  color: var(--foreground);
 }
 
 * {

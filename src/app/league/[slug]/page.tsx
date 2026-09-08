@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { EmptyState } from "@/components/ui/EmptyState";
@@ -44,33 +45,46 @@ export default async function LeagueHomePage({
 
   return (
     <div className="flex flex-col gap-6">
-      <header>
-        <p className="text-xs font-medium uppercase tracking-wide text-muted">Tu liga de Catan</p>
-        <h1 className="text-2xl font-semibold">{league.name}</h1>
-      </header>
-
-      {me && myPosition ? (
-        <div className="flex items-center justify-between rounded-2xl bg-primary p-4 text-primary-foreground shadow-sm">
-          <div>
-            <p className="text-xs opacity-80">Tu posición</p>
-            <p className="text-xl font-semibold">#{myPosition}</p>
-          </div>
-          <div className="text-right">
-            <p className="text-xs opacity-80">Tus puntos</p>
-            <p className="text-xl font-semibold">{formatPointsPlain(me.rankingPoints)}</p>
-          </div>
+      <div className="relative overflow-hidden rounded-[var(--radius-lg)]">
+        <div className="relative aspect-[4/5] w-full sm:aspect-[16/9]">
+          <Image
+            src="/brand/hero-landing.jpg"
+            alt=""
+            fill
+            className="object-cover object-[55%_60%]"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-carbon via-carbon/40 to-carbon/10" />
         </div>
-      ) : null}
 
-      {role === "admin" ? (
-        <LinkButton href={`/league/${slug}/new-game`} fullWidth>
-          Registrar partida
-        </LinkButton>
-      ) : null}
+        <div className="absolute inset-0 flex flex-col justify-end p-5 sm:p-7">
+          <p className="text-xs font-medium tracking-[0.08em] text-crema/60 uppercase">
+            Tu liga de Catan
+          </p>
+          <h1 className="font-editorial mt-1 text-4xl leading-[1.05] text-crema sm:text-5xl">
+            {league.name}
+          </h1>
+
+          {me && myPosition ? (
+            <p className="mt-3 text-sm text-crema/80">
+              Tu posición{" "}
+              <span className={myPosition === 1 ? "font-semibold text-dorado" : "font-semibold text-crema"}>
+                #{myPosition}
+              </span>{" "}
+              · {formatPointsPlain(me.rankingPoints)} pts
+            </p>
+          ) : null}
+
+          {role === "admin" ? (
+            <LinkButton href={`/league/${slug}/new-game`} className="mt-5 self-start">
+              + Registrar partida
+            </LinkButton>
+          ) : null}
+        </div>
+      </div>
 
       <section className="flex flex-col gap-3">
         <div className="flex items-center justify-between">
-          <h2 className="text-lg font-semibold">Ranking</h2>
+          <h2 className="font-editorial text-2xl text-foreground">Ranking</h2>
           <Link href={`/league/${slug}/stats`} className="text-sm font-medium text-primary">
             Ver stats
           </Link>
@@ -79,10 +93,10 @@ export default async function LeagueHomePage({
           <RankingTable slug={slug} stats={stats} highlightPlayerId={viewerPlayer?.id} />
         ) : (
           <EmptyState
-            title="Todavía no jugaron ninguna partida."
+            title="Todavía no empezó la historia."
             description={
               role === "admin"
-                ? "Registrá la primera para empezar a construir el ranking."
+                ? "Registrá la primera partida para empezar a construir el ranking."
                 : "Cuando un admin registre una partida, va a aparecer acá."
             }
           />
@@ -90,7 +104,7 @@ export default async function LeagueHomePage({
       </section>
 
       <section className="flex flex-col gap-3">
-        <h2 className="text-lg font-semibold">Última partida</h2>
+        <h2 className="font-editorial text-2xl text-foreground">Última partida</h2>
         {lastGame ? (
           <GameSummaryCard slug={slug} game={lastGame} players={players} />
         ) : (

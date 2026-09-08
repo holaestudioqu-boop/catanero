@@ -19,7 +19,7 @@ export function RankingTable({ slug, stats, highlightPlayerId }: RankingTablePro
           <li key={player.playerId}>
             <Link
               href={`/league/${slug}/players/${player.playerId}`}
-              className="flex items-center gap-3 rounded-2xl border border-border bg-surface px-4 py-3 transition-colors hover:bg-black/[.02] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary dark:hover:bg-white/[.03]"
+              className="flex items-center gap-3 rounded-[var(--radius-sm)] border border-border bg-surface px-4 py-3 transition-colors hover:bg-white/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
             >
               <PositionBadge position={position} />
               <div className="min-w-0 flex-1">

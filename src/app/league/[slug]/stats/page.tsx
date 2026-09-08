@@ -15,5 +15,5 @@ export default async function StatsPage({
   const [players, games] = await Promise.all([getPlayers(league.id), getGames(league.id)]);
   const stats = buildPlayerStats(players, games);
 
-  return <StatsView slug={slug} stats={stats} />;
+  return <StatsView slug={slug} stats={stats} gamesPlayed={games.length} />;
 }

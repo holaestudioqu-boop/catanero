@@ -4,12 +4,20 @@ import { useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
+import { PositionBadge } from "@/components/ui/PositionBadge";
 import { PointsPill } from "@/components/league/PointsPill";
 import { MAX_PLAYERS, MIN_PLAYERS, calculateRankingPoints } from "@/lib/domain/scoring";
 import type { Game, Player } from "@/lib/domain/types";
 import { createGameAction } from "@/app/league/[slug]/actions";
 
 type Step = 1 | 2 | 3 | 4 | 5;
+
+const STEP_TITLES: Record<Exclude<Step, 5>, string> = {
+  1: "¿Quiénes jugaron?",
+  2: "¿Cómo terminó?",
+  3: "Puntos de CATAN",
+  4: "Confirmar partida",
+};
 
 function moveItem<T>(list: T[], index: number, direction: -1 | 1): T[] {
   const targetIndex = index + direction;
@@ -86,29 +94,33 @@ export function NewGameWizard({ leagueId, slug, players }: NewGameWizardProps) {
   return (
     <div className="flex flex-col gap-6">
       {step < 5 ? (
-        <header className="flex items-center gap-3">
-          {step > 1 ? (
-            <button
-              type="button"
-              onClick={() => setStep((s) => (s - 1) as Step)}
-              className="flex h-9 w-9 items-center justify-center rounded-full text-muted hover:bg-black/[.04] dark:hover:bg-white/[.06]"
-              aria-label="Volver"
-            >
-              <BackIcon />
-            </button>
-          ) : null}
-          <div>
-            <p className="text-xs font-medium uppercase tracking-wide text-muted">
-              Paso {step} de 4
-            </p>
-            <h1 className="text-xl font-semibold">
-              {step === 1 && "¿Quiénes jugaron?"}
-              {step === 2 && "Orden final"}
-              {step === 3 && "Puntos de CATAN"}
-              {step === 4 && "Confirmar partida"}
-            </h1>
+        <>
+          <div className="h-1 overflow-hidden rounded-full bg-white/10">
+            <div
+              className="h-full rounded-full bg-naranja transition-all"
+              style={{ width: `${(step / 4) * 100}%` }}
+            />
           </div>
-        </header>
+
+          <header className="flex items-center gap-3">
+            {step > 1 ? (
+              <button
+                type="button"
+                onClick={() => setStep((s) => (s - 1) as Step)}
+                className="flex h-9 w-9 items-center justify-center rounded-full text-muted hover:bg-white/5"
+                aria-label="Volver"
+              >
+                <BackIcon />
+              </button>
+            ) : null}
+            <div>
+              <p className="text-xs font-medium tracking-[0.08em] text-muted uppercase">
+                Paso {step} de 4
+              </p>
+              <h1 className="font-editorial text-2xl text-foreground">{STEP_TITLES[step]}</h1>
+            </div>
+          </header>
+        </>
       ) : null}
 
       {step === 1 ? (
@@ -187,15 +199,13 @@ function PlayerSelectStep({
               onClick={() => onToggle(id)}
               disabled={disabled}
               aria-pressed={selected}
-              className={`flex min-h-14 items-center gap-2 rounded-2xl border px-4 text-left text-[15px] font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary disabled:opacity-40 ${
-                selected
-                  ? "border-primary bg-primary/10 text-primary"
-                  : "border-border bg-surface text-foreground hover:bg-black/[.02] dark:hover:bg-white/[.03]"
+              className={`flex min-h-14 items-center gap-3 rounded-[var(--radius-sm)] px-4 text-left text-[15px] font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary disabled:opacity-40 ${
+                selected ? "bg-naranja/15 text-naranja" : "bg-surface text-foreground hover:bg-white/5"
               }`}
             >
               <span
-                className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full border text-xs ${
-                  selected ? "border-primary bg-primary text-primary-foreground" : "border-border"
+                className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-[4px] border text-xs ${
+                  selected ? "border-naranja bg-naranja text-white" : "border-white/20"
                 }`}
               >
                 {selected ? "✓" : ""}
@@ -236,17 +246,15 @@ function OrderStep({
         {order.map((id, index) => (
           <li key={id}>
             <Card className="flex items-center gap-3 py-2.5">
-              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-black/[.05] text-sm font-semibold dark:bg-white/[.08]">
-                {index + 1}°
-              </span>
-              <span className="flex-1 text-[15px] font-medium">{nameOf(id)}</span>
+              <PositionBadge position={index + 1} />
+              <span className="flex-1 text-[15px] font-medium text-foreground">{nameOf(id)}</span>
               <div className="flex gap-1">
                 <button
                   type="button"
                   onClick={() => onMove(index, -1)}
                   disabled={index === 0}
                   aria-label={`Subir a puesto ${index}`}
-                  className="flex h-9 w-9 items-center justify-center rounded-full text-muted hover:bg-black/[.04] disabled:opacity-30 dark:hover:bg-white/[.06]"
+                  className="flex h-9 w-9 items-center justify-center rounded-full text-muted hover:bg-white/5 disabled:opacity-30"
                 >
                   ↑
                 </button>
@@ -255,7 +263,7 @@ function OrderStep({
                   onClick={() => onMove(index, 1)}
                   disabled={index === order.length - 1}
                   aria-label={`Bajar a puesto ${index + 2}`}
-                  className="flex h-9 w-9 items-center justify-center rounded-full text-muted hover:bg-black/[.04] disabled:opacity-30 dark:hover:bg-white/[.06]"
+                  className="flex h-9 w-9 items-center justify-center rounded-full text-muted hover:bg-white/5 disabled:opacity-30"
                 >
                   ↓
                 </button>
@@ -292,7 +300,7 @@ function CatanPointsStep({
       <div className="flex flex-col gap-2">
         {order.map((id) => (
           <Card key={id} className="flex items-center justify-between gap-3 py-2.5">
-            <label htmlFor={`catan-points-${id}`} className="text-[15px] font-medium">
+            <label htmlFor={`catan-points-${id}`} className="text-[15px] font-medium text-foreground">
               {nameOf(id)}
             </label>
             <input
@@ -304,7 +312,7 @@ function CatanPointsStep({
               placeholder="—"
               value={values[id] ?? ""}
               onChange={(e) => onChange(id, e.target.value)}
-              className="h-10 w-20 rounded-xl border border-border bg-background px-3 text-right text-[15px] tabular-nums focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+              className="h-10 w-20 rounded-[var(--radius-control)] border border-border bg-background px-3 text-right text-[15px] text-foreground tabular-nums focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
             />
           </Card>
         ))}
@@ -334,15 +342,16 @@ function ConfirmStep({
   const numberOfPlayers = order.length;
   return (
     <div className="flex flex-col gap-4">
-      <Card className="flex flex-col gap-2">
+      <Card className="flex flex-col gap-3">
         {order.map((id, index) => {
           const position = index + 1;
           const points = calculateRankingPoints(position, numberOfPlayers);
           const raw = catanPoints[id]?.trim();
           return (
-            <div key={id} className="flex items-center justify-between text-[15px]">
-              <span>
-                {position}° {nameOf(id)}
+            <div key={id} className="flex items-center gap-3">
+              <PositionBadge position={position} />
+              <span className="flex-1 text-[15px] text-foreground">
+                {nameOf(id)}
                 {raw ? <span className="text-muted"> — {raw} pts</span> : null}
               </span>
               <PointsPill value={points} />
@@ -374,14 +383,14 @@ function SavedStep({
     : 0;
 
   return (
-    <div className="flex flex-col items-center gap-4 pt-8 text-center">
-      <span className="flex h-14 w-14 items-center justify-center rounded-full bg-accent/15 text-2xl">
-        🏆
+    <div className="flex flex-col items-center gap-4 pt-10 text-center">
+      <span className="flex h-16 w-16 items-center justify-center rounded-full border-2 border-dorado text-2xl">
+        ✓
       </span>
       <div>
-        <h1 className="text-xl font-semibold">Partida registrada</h1>
+        <h1 className="font-editorial text-3xl text-foreground">Partida registrada</h1>
         {winner ? (
-          <p className="mt-1 text-muted">
+          <p className="mt-2 text-muted">
             {nameOf(winner.playerId)} ganó y suma <PointsPill value={winnerPoints} /> puntos.
           </p>
         ) : null}

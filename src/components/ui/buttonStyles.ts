@@ -19,7 +19,7 @@ export function buttonClasses(
   className?: string
 ): string {
   return clsx(
-    "inline-flex min-h-12 items-center justify-center gap-2 rounded-2xl px-6 text-[15px] font-medium transition-colors",
+    "inline-flex min-h-12 items-center justify-center gap-2 rounded-[var(--radius-control)] px-6 text-[15px] font-medium transition-colors",
     "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background",
     "disabled:cursor-not-allowed",
     fullWidth && "w-full",

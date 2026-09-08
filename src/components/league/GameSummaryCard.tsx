@@ -19,7 +19,7 @@ export function GameSummaryCard({ slug, game, players }: GameSummaryCardProps) {
 
   return (
     <Link href={`/league/${slug}/games/${game.id}`}>
-      <Card className="transition-colors hover:bg-black/[.02] dark:hover:bg-white/[.03]">
+      <Card className="transition-colors hover:bg-white/5">
         <p className="mb-3 text-xs font-medium uppercase tracking-wide text-muted">
           {formatDateShort(game.playedAt)}
         </p>

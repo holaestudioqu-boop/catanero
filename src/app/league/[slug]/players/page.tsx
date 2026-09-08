@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import { PlayersList } from "@/components/league/PlayersList";
-import { getLeagueBySlug, getMembership, getPlayers } from "@/lib/data/leagues";
+import { buildPlayerStats } from "@/lib/domain/ranking";
+import { getGames, getLeagueBySlug, getMembership, getPlayers } from "@/lib/data/leagues";
 import { createClient } from "@/lib/supabase/server";
 
 export default async function PlayersPage({
@@ -18,16 +19,20 @@ export default async function PlayersPage({
   } = await supabase.auth.getUser();
   if (!user) return null;
 
-  const [role, players] = await Promise.all([
+  const [role, players, games] = await Promise.all([
     getMembership(league.id, user.id),
     getPlayers(league.id),
+    getGames(league.id),
   ]);
+
+  const stats = buildPlayerStats(players, games);
 
   return (
     <PlayersList
       slug={slug}
       leagueId={league.id}
       players={players}
+      stats={stats}
       canAdd={role === "admin"}
     />
   );
