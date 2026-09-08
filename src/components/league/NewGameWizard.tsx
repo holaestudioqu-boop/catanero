@@ -93,7 +93,7 @@ export function NewGameWizard({ leagueId, slug, players }: NewGameWizardProps) {
 
   return (
     <div className="flex flex-col gap-6">
-      {step < 5 ? (
+      {step !== 5 ? (
         <>
           <div className="h-1 overflow-hidden rounded-full bg-white/10">
             <div
