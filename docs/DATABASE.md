@@ -75,11 +75,19 @@ Solo quien crea una liga queda como admin (vía el trigger
   una liga por slug, sin exponer jugadores ni partidas. Grant a `anon` y
   `authenticated` para poder mostrarlo antes de loguearse.
 - `join_league(slug)`: agrega al usuario autenticado como `player` de esa
-  liga (nunca `admin`). Grant solo a `authenticated`.
+  liga (nunca `admin`) en `league_members`, **y** le crea su fila en
+  `players` vinculada por `user_id` si todavía no la tenía. Sin esto,
+  alguien podía unirse y quedar con acceso a la liga pero invisible en
+  "Jugadores" y en el ranking, porque esas pantallas leen de `players`,
+  no de `league_members`. Grant solo a `authenticated`.
 
 El flujo público es `/join/[slug]`: el admin comparte ese link, quien lo
 abre ve el preview, y si no tiene cuenta pasa por `/login?next=/join/[slug]`
 para volver automáticamente después de registrarse o iniciar sesión.
+
+Quien se unió antes de este fix quedó sin su `players` vinculado; el
+schema incluye un backfill idempotente (mismo criterio: solo inserta lo
+que falta) para dejarlos al día la próxima vez que se corra completo.
 
 ## Promover/degradar admins
 

@@ -293,6 +293,7 @@ set search_path = public
 as $$
 declare
   v_league_id uuid;
+  v_display_name text;
 begin
   select id into v_league_id from leagues where slug = p_slug;
 
@@ -304,12 +305,37 @@ begin
   values (v_league_id, auth.uid(), 'player')
   on conflict (league_id, user_id) do nothing;
 
+  -- Sumarse a la liga también crea el jugador vinculado a la cuenta:
+  -- sin esto, quien se unía por invitación quedaba como miembro (podía
+  -- ver todo) pero nunca aparecía en "Jugadores" ni en el ranking,
+  -- porque esas pantallas leen de "players", no de "league_members".
+  if not exists (
+    select 1 from players where league_id = v_league_id and user_id = auth.uid()
+  ) then
+    select display_name into v_display_name from profiles where id = auth.uid();
+    insert into players (league_id, user_id, display_name)
+    values (v_league_id, auth.uid(), coalesce(v_display_name, 'Jugador'));
+  end if;
+
   return v_league_id;
 end;
 $$;
 
 revoke all on function join_league(text) from public;
 grant execute on function join_league(text) to authenticated;
+
+-- Backfill: alguien que ya se sumó a una liga antes de este fix quedó
+-- como miembro pero sin jugador vinculado. Este insert es idempotente
+-- (solo agrega lo que falta), así que es seguro dejarlo acá y volver
+-- a correr el schema completo sin duplicar nada.
+insert into players (league_id, user_id, display_name)
+select lm.league_id, lm.user_id, coalesce(p.display_name, 'Jugador')
+from league_members lm
+join profiles p on p.id = lm.user_id
+where not exists (
+  select 1 from players pl
+  where pl.league_id = lm.league_id and pl.user_id = lm.user_id
+);
 
 -- ============================================================
 -- set_member_role: promover/degradar a un miembro registrado dentro
