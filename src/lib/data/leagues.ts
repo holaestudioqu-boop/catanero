@@ -122,6 +122,39 @@ export const getPlayerAccountInfo = cache(
   }
 );
 
+export interface UnlinkedMember {
+  userId: string;
+  displayName: string;
+}
+
+export const getUnlinkedMembers = cache(
+  async (leagueId: string): Promise<UnlinkedMember[]> => {
+    const supabase = await createClient();
+    const [{ data: members }, { data: linkedPlayers }] = await Promise.all([
+      supabase.from("league_members").select("user_id").eq("league_id", leagueId),
+      supabase
+        .from("players")
+        .select("user_id")
+        .eq("league_id", leagueId)
+        .not("user_id", "is", null),
+    ]);
+
+    const linkedIds = new Set((linkedPlayers ?? []).map((p) => p.user_id));
+    const unlinkedIds = (members ?? [])
+      .map((m) => m.user_id)
+      .filter((id) => !linkedIds.has(id));
+
+    if (unlinkedIds.length === 0) return [];
+
+    const { data: profiles } = await supabase
+      .from("profiles")
+      .select("id, display_name")
+      .in("id", unlinkedIds);
+
+    return (profiles ?? []).map((p) => ({ userId: p.id, displayName: p.display_name }));
+  }
+);
+
 export const getPlayers = cache(async (leagueId: string): Promise<Player[]> => {
   const supabase = await createClient();
   const { data } = await supabase

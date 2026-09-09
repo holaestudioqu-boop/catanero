@@ -99,6 +99,20 @@ el perfil de cada jugador (`/league/[slug]/players/[playerId]`) y solo
 aparece si ese jugador tiene una cuenta vinculada (`players.user_id` no
 nulo) y no es el usuario que está mirando la pantalla.
 
+## Vincular un jugador invitado a una cuenta
+
+Un jugador cargado a mano (`players.user_id` nulo, "Agregar jugador")
+puede tener historial de partidas. Si esa persona después se registra
+e invita, unirse le crea un `players` propio y vacío (ver
+`join_league`), separado del que ya tenía su historial. El control
+"Vincular a una cuenta" en el perfil del jugador invitado (solo admin,
+solo si nadie más ya está vinculado a esa cuenta) hace `update` directo
+sobre `players.user_id` — no hace falta una función nueva porque la
+policy `update_players_as_admin` ya lo permite. Antes de vincular,
+borra el `players` vacío que se creó al unirse (si tiene partidas, no
+deja vincular y avisa que hay que resolverlo primero, porque
+`game_results.player_id` es `on delete restrict`).
+
 ## Aplicar el schema
 
 1. Crear un proyecto nuevo en [supabase.com](https://supabase.com) (plan Free).

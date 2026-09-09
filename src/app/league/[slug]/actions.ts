@@ -86,6 +86,51 @@ export async function setMemberRole(
   return { error: null };
 }
 
+export interface LinkPlayerAccountState {
+  error: string | null;
+}
+
+export async function linkPlayerAccount(
+  playerId: string,
+  userId: string,
+  leagueId: string,
+  slug: string,
+  _prevState: LinkPlayerAccountState,
+  _formData: FormData
+): Promise<LinkPlayerAccountState> {
+  const supabase = await createClient();
+
+  // Unirse a la liga crea un player propio automáticamente (ver
+  // join_league). Si esa cuenta ya tiene uno en esta liga y todavía no
+  // jugó ninguna partida, se borra para no dejar dos identidades
+  // separadas para la misma persona al vincularla al jugador invitado.
+  const { data: existing } = await supabase
+    .from("players")
+    .select("id")
+    .eq("league_id", leagueId)
+    .eq("user_id", userId)
+    .neq("id", playerId)
+    .maybeSingle();
+
+  if (existing) {
+    const { error: deleteError } = await supabase.from("players").delete().eq("id", existing.id);
+    if (deleteError) {
+      return {
+        error: "Esa cuenta ya tiene un jugador propio con partidas registradas. Resolvé eso primero.",
+      };
+    }
+  }
+
+  const { error } = await supabase.from("players").update({ user_id: userId }).eq("id", playerId);
+  if (error) {
+    return { error: "No se pudo vincular. ¿Tenés permisos de administrador?" };
+  }
+
+  revalidatePath(`/league/${slug}/players/${playerId}`);
+  revalidatePath(`/league/${slug}/players`);
+  return { error: null };
+}
+
 export interface CreateGameResultInput {
   playerId: string;
   position: number;

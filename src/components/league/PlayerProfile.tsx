@@ -4,10 +4,12 @@ import { EmptyState } from "@/components/ui/EmptyState";
 import { PositionBadge } from "@/components/ui/PositionBadge";
 import { Sparkline } from "@/components/ui/Sparkline";
 import { DeletePlayerButton } from "@/components/league/DeletePlayerButton";
+import { LinkPlayerAccountControl } from "@/components/league/LinkPlayerAccountControl";
 import { MemberRoleControl } from "@/components/league/MemberRoleControl";
 import { PointsPill } from "@/components/league/PointsPill";
 import { calculateRankingPoints } from "@/lib/domain/scoring";
 import { formatAverage, formatDateShort, formatPercent, formatPointsPlain } from "@/lib/format";
+import type { UnlinkedMember } from "@/lib/data/leagues";
 import type { Game, Player, PlayerStats } from "@/lib/domain/types";
 import type { LeagueRole } from "@/lib/supabase/types";
 
@@ -20,6 +22,7 @@ interface PlayerProfileProps {
   pointsHistory: number[];
   canDelete: boolean;
   roleControl: { leagueId: string; userId: string; currentRole: LeagueRole } | null;
+  linkAccount: { leagueId: string; members: UnlinkedMember[] } | null;
 }
 
 export function PlayerProfile({
@@ -31,6 +34,7 @@ export function PlayerProfile({
   pointsHistory,
   canDelete,
   roleControl,
+  linkAccount,
 }: PlayerProfileProps) {
   const initial = player.displayName.charAt(0).toUpperCase();
   const isLeader = stats.gamesPlayed > 0 && position === 1;
@@ -122,6 +126,17 @@ export function PlayerProfile({
           </section>
         </>
       )}
+
+      {linkAccount ? (
+        <div className="border-t border-border pt-4">
+          <LinkPlayerAccountControl
+            playerId={player.id}
+            leagueId={linkAccount.leagueId}
+            slug={slug}
+            members={linkAccount.members}
+          />
+        </div>
+      ) : null}
 
       {roleControl ? (
         <div className="border-t border-border pt-4">

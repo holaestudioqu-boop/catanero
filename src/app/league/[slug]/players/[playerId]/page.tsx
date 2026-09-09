@@ -9,6 +9,7 @@ import {
   getMembership,
   getPlayerAccountInfo,
   getPlayers,
+  getUnlinkedMembers,
 } from "@/lib/data/leagues";
 import { createClient } from "@/lib/supabase/server";
 
@@ -27,11 +28,12 @@ export default async function PlayerProfilePage({
   } = await supabase.auth.getUser();
   if (!user) return null;
 
-  const [role, players, games, account] = await Promise.all([
+  const [role, players, games, account, unlinkedMembers] = await Promise.all([
     getMembership(league.id, user.id),
     getPlayers(league.id),
     getGames(league.id),
     getPlayerAccountInfo(league.id, playerId),
+    getUnlinkedMembers(league.id),
   ]);
 
   const player = players.find((p) => p.id === playerId);
@@ -58,6 +60,8 @@ export default async function PlayerProfilePage({
       ? { leagueId: league.id, userId: account.userId, currentRole: account.role }
       : null;
 
+  const canLinkAccount = role === "admin" && !account.userId && unlinkedMembers.length > 0;
+
   return (
     <PlayerProfile
       slug={slug}
@@ -68,6 +72,7 @@ export default async function PlayerProfilePage({
       pointsHistory={pointsHistory}
       canDelete={role === "admin"}
       roleControl={roleControl}
+      linkAccount={canLinkAccount ? { leagueId: league.id, members: unlinkedMembers } : null}
     />
   );
 }
