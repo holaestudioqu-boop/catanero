@@ -108,6 +108,7 @@ export interface Database {
           notes?: string | null;
         };
         Update: {
+          played_at?: string;
           notes?: string | null;
         };
         Relationships: [];
