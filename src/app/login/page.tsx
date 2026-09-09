@@ -35,13 +35,7 @@ export default async function LoginPage({
         />
         <div className="absolute inset-0 bg-gradient-to-b from-carbon/40 to-carbon/90" />
         <div className="relative flex h-full items-start p-6">
-          <Image
-            src="/brand/logo-mark-cream.png"
-            alt="Catanero"
-            width={168}
-            height={158}
-            className="h-10 w-auto"
-          />
+          <span className="font-editorial text-2xl text-crema">Catanero</span>
         </div>
       </div>
 
@@ -54,13 +48,7 @@ export default async function LoginPage({
         />
         <div className="absolute inset-0 bg-gradient-to-b from-carbon/50 via-carbon/70 to-carbon/95" />
 
-        <Image
-          src="/brand/logo-mark-cream.png"
-          alt="Catanero"
-          width={168}
-          height={158}
-          className="relative h-11 w-auto self-start"
-        />
+        <span className="font-editorial relative self-start text-2xl text-crema">Catanero</span>
 
         <h2 className="font-editorial relative max-w-sm text-4xl leading-[1.15] text-crema xl:text-5xl">
           Bienvenido a nuevas historias.

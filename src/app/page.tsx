@@ -21,14 +21,7 @@ export default async function LandingPage() {
 
       <div className="relative flex min-h-dvh flex-col">
         <header className="flex items-center justify-between px-6 py-6 sm:px-10">
-          <Image
-            src="/brand/logo-mark-cream.png"
-            alt="Catanero"
-            width={168}
-            height={158}
-            className="h-11 w-auto sm:h-12"
-            priority
-          />
+          <span className="font-editorial text-2xl text-crema sm:text-3xl">Catanero</span>
           <Link
             href={user ? "/dashboard" : "/login"}
             className="rounded-[var(--radius-control)] border border-dorado/70 bg-carbon/40 px-5 py-2.5 text-sm font-medium text-crema backdrop-blur-sm transition-colors hover:bg-carbon/60"

@@ -1,4 +1,3 @@
-import Image from "next/image";
 import { redirect } from "next/navigation";
 import { CreateLeagueForm } from "@/components/dashboard/CreateLeagueForm";
 import { LeagueCard } from "@/components/dashboard/LeagueCard";
@@ -19,13 +18,7 @@ export default async function DashboardPage() {
     <div className="min-h-dvh bg-background px-4 py-8 sm:px-8">
       <div className="mx-auto flex w-full max-w-4xl flex-col gap-6">
         <header className="flex items-center justify-between">
-          <Image
-            src="/brand/logo-mark-carbon.png"
-            alt="Catanero"
-            width={168}
-            height={158}
-            className="h-9 w-auto self-start"
-          />
+          <span className="font-editorial text-2xl text-foreground">Catanero</span>
           <form action={signOut}>
             <button type="submit" className="text-sm text-muted hover:text-foreground">
               Salir
