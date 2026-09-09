@@ -7,10 +7,13 @@ import { joinLeagueAction } from "./actions";
 
 export default async function JoinLeaguePage({
   params,
+  searchParams,
 }: {
   params: Promise<{ slug: string }>;
+  searchParams: Promise<{ error?: string }>;
 }) {
   const { slug } = await params;
+  const { error } = await searchParams;
   const supabase = await createClient();
 
   const [
@@ -51,6 +54,11 @@ export default async function JoinLeaguePage({
 
         {user ? (
           <form action={joinLeagueAction.bind(null, slug)} className="mt-8 w-full">
+            {error ? (
+              <p className="mb-3 text-sm text-danger">
+                No pudimos sumarte a la liga. Probá de nuevo.
+              </p>
+            ) : null}
             <Button type="submit" fullWidth>
               Unirme a la liga
             </Button>
