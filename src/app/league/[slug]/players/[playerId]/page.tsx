@@ -61,6 +61,11 @@ export default async function PlayerProfilePage({
       : null;
 
   const canLinkAccount = role === "admin" && !account.userId && unlinkedMembers.length > 0;
+  const isOwnPlayer = account.userId === user.id;
+  const renameControl =
+    role === "admin" || isOwnPlayer
+      ? { leagueId: league.id, isOwnPlayer }
+      : null;
 
   return (
     <PlayerProfile
@@ -73,6 +78,7 @@ export default async function PlayerProfilePage({
       canDelete={role === "admin"}
       roleControl={roleControl}
       linkAccount={canLinkAccount ? { leagueId: league.id, members: unlinkedMembers } : null}
+      renameControl={renameControl}
     />
   );
 }

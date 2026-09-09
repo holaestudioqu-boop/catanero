@@ -131,6 +131,42 @@ export async function linkPlayerAccount(
   return { error: null };
 }
 
+export interface RenamePlayerState {
+  error: string | null;
+}
+
+export async function renamePlayer(
+  playerId: string,
+  leagueId: string,
+  slug: string,
+  isOwnPlayer: boolean,
+  _prevState: RenamePlayerState,
+  formData: FormData
+): Promise<RenamePlayerState> {
+  const displayName = String(formData.get("displayName") ?? "").trim();
+  if (!displayName) {
+    return { error: "Ingresá un nombre." };
+  }
+
+  const supabase = await createClient();
+
+  const { error } = isOwnPlayer
+    ? await supabase.rpc("set_own_display_name", {
+        p_league_id: leagueId,
+        p_display_name: displayName,
+      })
+    : await supabase.from("players").update({ display_name: displayName }).eq("id", playerId);
+
+  if (error) {
+    return { error: "No se pudo cambiar el nombre." };
+  }
+
+  revalidatePath(`/league/${slug}/players/${playerId}`);
+  revalidatePath(`/league/${slug}/players`);
+  revalidatePath(`/league/${slug}`);
+  return { error: null };
+}
+
 export interface CreateGameResultInput {
   playerId: string;
   position: number;

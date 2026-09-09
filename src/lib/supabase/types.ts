@@ -184,6 +184,10 @@ export interface Database {
         Args: { p_league_id: string; p_user_id: string; p_role: LeagueRole };
         Returns: undefined;
       };
+      set_own_display_name: {
+        Args: { p_league_id: string; p_display_name: string };
+        Returns: undefined;
+      };
     };
     Enums: Record<string, never>;
     CompositeTypes: Record<string, never>;

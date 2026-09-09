@@ -7,6 +7,7 @@ import { DeletePlayerButton } from "@/components/league/DeletePlayerButton";
 import { LinkPlayerAccountControl } from "@/components/league/LinkPlayerAccountControl";
 import { MemberRoleControl } from "@/components/league/MemberRoleControl";
 import { PointsPill } from "@/components/league/PointsPill";
+import { RenamePlayerControl } from "@/components/league/RenamePlayerControl";
 import { calculateRankingPoints } from "@/lib/domain/scoring";
 import { formatAverage, formatDateShort, formatPercent, formatPointsPlain } from "@/lib/format";
 import type { UnlinkedMember } from "@/lib/data/leagues";
@@ -23,6 +24,7 @@ interface PlayerProfileProps {
   canDelete: boolean;
   roleControl: { leagueId: string; userId: string; currentRole: LeagueRole } | null;
   linkAccount: { leagueId: string; members: UnlinkedMember[] } | null;
+  renameControl: { leagueId: string; isOwnPlayer: boolean } | null;
 }
 
 export function PlayerProfile({
@@ -35,6 +37,7 @@ export function PlayerProfile({
   canDelete,
   roleControl,
   linkAccount,
+  renameControl,
 }: PlayerProfileProps) {
   const initial = player.displayName.charAt(0).toUpperCase();
   const isLeader = stats.gamesPlayed > 0 && position === 1;
@@ -61,6 +64,17 @@ export function PlayerProfile({
             <p className="mt-1 text-sm text-muted">
               #{position} · {formatPointsPlain(stats.rankingPoints)} puntos
             </p>
+          ) : null}
+          {renameControl ? (
+            <div className="mt-2">
+              <RenamePlayerControl
+                playerId={player.id}
+                leagueId={renameControl.leagueId}
+                slug={slug}
+                isOwnPlayer={renameControl.isOwnPlayer}
+                currentName={player.displayName}
+              />
+            </div>
           ) : null}
         </div>
       </div>

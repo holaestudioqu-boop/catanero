@@ -372,6 +372,33 @@ revoke all on function set_member_role(uuid, uuid, league_role) from public;
 grant execute on function set_member_role(uuid, uuid, league_role) to authenticated;
 
 -- ============================================================
+-- set_own_display_name: un jugador con cuenta cambia su propio
+-- nombre visible en una liga. No pasa por la policy de update de
+-- "players" (esa exige ser admin) porque acá cualquiera puede tocar
+-- su propia fila, nunca la de otro.
+-- ============================================================
+
+create or replace function set_own_display_name(p_league_id uuid, p_display_name text)
+returns void
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  if p_display_name is null or length(trim(p_display_name)) = 0 then
+    raise exception 'El nombre no puede estar vacío';
+  end if;
+
+  update players
+  set display_name = trim(p_display_name)
+  where league_id = p_league_id and user_id = auth.uid();
+end;
+$$;
+
+revoke all on function set_own_display_name(uuid, text) from public;
+grant execute on function set_own_display_name(uuid, text) to authenticated;
+
+-- ============================================================
 -- Row Level Security
 -- ============================================================
 
