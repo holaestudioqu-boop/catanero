@@ -181,7 +181,8 @@ export interface CreateGameActionResult {
 export async function createGameAction(
   leagueId: string,
   slug: string,
-  results: CreateGameResultInput[]
+  results: CreateGameResultInput[],
+  playedAt?: string
 ): Promise<CreateGameActionResult> {
   const supabase = await createClient();
 
@@ -193,6 +194,7 @@ export async function createGameAction(
       position: r.position,
       catan_points: r.catanPoints ?? null,
     })),
+    p_played_at: playedAt ? `${playedAt}T12:00:00` : null,
   });
 
   if (error) {
@@ -201,4 +203,35 @@ export async function createGameAction(
 
   revalidatePath(`/league/${slug}`);
   return { gameId: data, error: null };
+}
+
+export interface UpdateGameDateState {
+  error: string | null;
+}
+
+export async function updateGameDate(
+  gameId: string,
+  slug: string,
+  _prevState: UpdateGameDateState,
+  formData: FormData
+): Promise<UpdateGameDateState> {
+  const date = String(formData.get("playedAt") ?? "").trim();
+  if (!date) {
+    return { error: "Elegí una fecha." };
+  }
+
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from("games")
+    .update({ played_at: `${date}T12:00:00` })
+    .eq("id", gameId);
+
+  if (error) {
+    return { error: "No se pudo cambiar la fecha. ¿Tenés permisos de administrador?" };
+  }
+
+  revalidatePath(`/league/${slug}/games/${gameId}`);
+  revalidatePath(`/league/${slug}/games`);
+  revalidatePath(`/league/${slug}`);
+  return { error: null };
 }

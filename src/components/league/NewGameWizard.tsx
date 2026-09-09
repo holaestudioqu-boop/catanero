@@ -38,6 +38,7 @@ export function NewGameWizard({ leagueId, slug, players }: NewGameWizardProps) {
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [order, setOrder] = useState<string[]>([]);
   const [catanPoints, setCatanPoints] = useState<Record<string, string>>({});
+  const [playedAt, setPlayedAt] = useState(() => new Date().toLocaleDateString("en-CA"));
   const [submitting, setSubmitting] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
   const [savedGame, setSavedGame] = useState<Game | null>(null);
@@ -77,7 +78,7 @@ export function NewGameWizard({ leagueId, slug, players }: NewGameWizardProps) {
       };
     });
 
-    const { gameId, error } = await createGameAction(leagueId, slug, results);
+    const { gameId, error } = await createGameAction(leagueId, slug, results, playedAt);
 
     if (error || !gameId) {
       setSaveError(error ?? "No pudimos guardar la partida. Probá de nuevo.");
@@ -86,7 +87,7 @@ export function NewGameWizard({ leagueId, slug, players }: NewGameWizardProps) {
       return;
     }
 
-    setSavedGame({ id: gameId, playedAt: new Date().toISOString(), results });
+    setSavedGame({ id: gameId, playedAt: `${playedAt}T12:00:00`, results });
     setSubmitting(false);
     setStep(5);
   }
@@ -157,6 +158,8 @@ export function NewGameWizard({ leagueId, slug, players }: NewGameWizardProps) {
           order={order}
           nameOf={nameOf}
           catanPoints={catanPoints}
+          playedAt={playedAt}
+          onPlayedAtChange={setPlayedAt}
           submitting={submitting}
           error={saveError}
           onSave={handleSave}
@@ -328,6 +331,8 @@ function ConfirmStep({
   order,
   nameOf,
   catanPoints,
+  playedAt,
+  onPlayedAtChange,
   submitting,
   error,
   onSave,
@@ -335,6 +340,8 @@ function ConfirmStep({
   order: string[];
   nameOf: (id: string) => string;
   catanPoints: Record<string, string>;
+  playedAt: string;
+  onPlayedAtChange: (value: string) => void;
   submitting: boolean;
   error: string | null;
   onSave: () => void;
@@ -342,6 +349,19 @@ function ConfirmStep({
   const numberOfPlayers = order.length;
   return (
     <div className="flex flex-col gap-4">
+      <div className="flex items-center justify-between gap-3 rounded-[var(--radius-sm)] bg-surface px-4 py-3">
+        <label htmlFor="played-at" className="text-[15px] font-medium text-foreground">
+          ¿Cuándo se jugó?
+        </label>
+        <input
+          id="played-at"
+          type="date"
+          value={playedAt}
+          max={new Date().toLocaleDateString("en-CA")}
+          onChange={(e) => onPlayedAtChange(e.target.value)}
+          className="h-10 rounded-[var(--radius-control)] border border-border bg-background px-3 text-[15px] text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+        />
+      </div>
       <Card className="flex flex-col gap-3">
         {order.map((id, index) => {
           const position = index + 1;

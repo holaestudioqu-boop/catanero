@@ -113,6 +113,16 @@ borra el `players` vacío que se creó al unirse (si tiene partidas, no
 deja vincular y avisa que hay que resolverlo primero, porque
 `game_results.player_id` es `on delete restrict`).
 
+## Fecha de la partida
+
+`games.played_at` no queda fijado al momento de carga: `create_game`
+acepta `p_played_at` opcional (default `now()`) para que el wizard deje
+elegir la fecha real, y un admin puede corregirla después desde el
+detalle de la partida ("Editar fecha") con un `update` directo — la
+policy `update_games_as_admin` ya lo permite, no hace falta RPC. Las
+fechas se guardan siempre al mediodía UTC (`T12:00:00`) para que el día
+de calendario no cambie sin importar en qué huso horario se lea.
+
 ## Aplicar el schema
 
 1. Crear un proyecto nuevo en [supabase.com](https://supabase.com) (plan Free).

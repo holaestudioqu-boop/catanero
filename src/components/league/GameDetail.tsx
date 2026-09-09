@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Card } from "@/components/ui/Card";
 import { CatanPointsBadge } from "@/components/league/CatanPointsBadge";
+import { EditGameDateControl } from "@/components/league/EditGameDateControl";
 import { PointsPill } from "@/components/league/PointsPill";
 import { calculateRankingPoints } from "@/lib/domain/scoring";
 import { formatDateLong } from "@/lib/format";
@@ -10,9 +11,10 @@ interface GameDetailProps {
   slug: string;
   game: Game;
   players: Player[];
+  canEditDate: boolean;
 }
 
-export function GameDetail({ slug, game, players }: GameDetailProps) {
+export function GameDetail({ slug, game, players, canEditDate }: GameDetailProps) {
   const nameOf = (playerId: string) =>
     players.find((p) => p.id === playerId)?.displayName ?? playerId;
   const numberOfPlayers = game.results.length;
@@ -30,6 +32,15 @@ export function GameDetail({ slug, game, players }: GameDetailProps) {
           <p className="text-xs font-medium tracking-[0.08em] text-muted uppercase">
             {formatDateLong(game.playedAt)} · {numberOfPlayers} jugadores
           </p>
+          {canEditDate ? (
+            <div className="mt-2">
+              <EditGameDateControl
+                gameId={game.id}
+                slug={slug}
+                currentDate={game.playedAt.slice(0, 10)}
+              />
+            </div>
+          ) : null}
           <div className="mt-2 flex items-center justify-between gap-4">
             <h1 className="font-editorial text-2xl text-foreground sm:text-3xl">
               {nameOf(winner?.playerId ?? "")} ganó la partida

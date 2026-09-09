@@ -163,12 +163,18 @@ $$;
 -- transacción, validando y calculando ranking_points en el servidor.
 -- No confía en el cliente para nada de esto (sección 9 y 37 del spec).
 -- p_results: [{ "player_id": uuid, "position": int, "catan_points": int|null }, ...]
+-- p_played_at es opcional (default null = ahora): la partida se suele
+-- cargar uno o dos días después de jugarse, así que el admin puede
+-- elegir la fecha real en vez de que quede fijada al momento de carga.
 -- ============================================================
+
+drop function if exists create_game(uuid, text, jsonb);
 
 create or replace function create_game(
   p_league_id uuid,
   p_notes text,
-  p_results jsonb
+  p_results jsonb,
+  p_played_at timestamptz default null
 )
 returns uuid
 language plpgsql
@@ -216,8 +222,8 @@ begin
     raise exception 'Todos los jugadores deben pertenecer a la liga';
   end if;
 
-  insert into games (league_id, notes, created_by)
-  values (p_league_id, p_notes, auth.uid())
+  insert into games (league_id, notes, created_by, played_at)
+  values (p_league_id, p_notes, auth.uid(), coalesce(p_played_at, now()))
   returning id into v_game_id;
 
   for v_result in select * from jsonb_array_elements(p_results)
@@ -242,8 +248,8 @@ begin
 end;
 $$;
 
-revoke all on function create_game(uuid, text, jsonb) from public;
-grant execute on function create_game(uuid, text, jsonb) to authenticated;
+revoke all on function create_game(uuid, text, jsonb, timestamptz) from public;
+grant execute on function create_game(uuid, text, jsonb, timestamptz) to authenticated;
 
 -- ============================================================
 -- Invitar jugadores: get_league_preview + join_league.

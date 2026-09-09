@@ -163,6 +163,7 @@ export interface Database {
           p_league_id: string;
           p_notes: string | null;
           p_results: CreateGameResultInput[];
+          p_played_at?: string | null;
         };
         Returns: string;
       };
