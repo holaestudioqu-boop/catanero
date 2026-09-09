@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Card } from "@/components/ui/Card";
 import { CatanPointsBadge } from "@/components/league/CatanPointsBadge";
+import { DeleteGameButton } from "@/components/league/DeleteGameButton";
 import { EditGameDateControl } from "@/components/league/EditGameDateControl";
 import { PointsPill } from "@/components/league/PointsPill";
 import { calculateRankingPoints } from "@/lib/domain/scoring";
@@ -11,10 +12,10 @@ interface GameDetailProps {
   slug: string;
   game: Game;
   players: Player[];
-  canEditDate: boolean;
+  canManage: boolean;
 }
 
-export function GameDetail({ slug, game, players, canEditDate }: GameDetailProps) {
+export function GameDetail({ slug, game, players, canManage }: GameDetailProps) {
   const nameOf = (playerId: string) =>
     players.find((p) => p.id === playerId)?.displayName ?? playerId;
   const numberOfPlayers = game.results.length;
@@ -32,7 +33,7 @@ export function GameDetail({ slug, game, players, canEditDate }: GameDetailProps
           <p className="text-xs font-medium tracking-[0.08em] text-muted uppercase">
             {formatDateLong(game.playedAt)} · {numberOfPlayers} jugadores
           </p>
-          {canEditDate ? (
+          {canManage ? (
             <div className="mt-2 flex items-center gap-4">
               <EditGameDateControl
                 gameId={game.id}
@@ -85,6 +86,12 @@ export function GameDetail({ slug, game, players, canEditDate }: GameDetailProps
         <p className="text-xs text-muted">
           Puntos calculados automáticamente según una partida de {numberOfPlayers} jugadores.
         </p>
+
+        {canManage ? (
+          <div className="border-t border-border pt-4">
+            <DeleteGameButton gameId={game.id} slug={slug} />
+          </div>
+        ) : null}
       </Card>
     </div>
   );

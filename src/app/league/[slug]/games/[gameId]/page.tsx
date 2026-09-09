@@ -34,5 +34,5 @@ export default async function GameDetailPage({
     );
   }
 
-  return <GameDetail slug={slug} game={game} players={players} canEditDate={role === "admin"} />;
+  return <GameDetail slug={slug} game={game} players={players} canManage={role === "admin"} />;
 }

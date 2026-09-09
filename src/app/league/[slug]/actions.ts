@@ -263,3 +263,25 @@ export async function updateGameAction(
   revalidatePath(`/league/${slug}`);
   return { gameId, error: null };
 }
+
+export interface DeleteGameState {
+  error: string | null;
+}
+
+export async function deleteGame(
+  gameId: string,
+  slug: string,
+  _prevState: DeleteGameState,
+  _formData: FormData
+): Promise<DeleteGameState> {
+  const supabase = await createClient();
+  const { error } = await supabase.from("games").delete().eq("id", gameId);
+
+  if (error) {
+    return { error: "No se pudo eliminar la partida. ¿Tenés permisos de administrador?" };
+  }
+
+  revalidatePath(`/league/${slug}/games`);
+  revalidatePath(`/league/${slug}`);
+  redirect(`/league/${slug}/games`);
+}
