@@ -14,6 +14,16 @@ export interface LeagueSummary extends League {
   playerCount: number;
 }
 
+export const getOwnDisplayName = cache(async (userId: string): Promise<string | null> => {
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("profiles")
+    .select("display_name")
+    .eq("id", userId)
+    .maybeSingle();
+  return data?.display_name ?? null;
+});
+
 export const getUserLeagues = cache(async (userId: string): Promise<LeagueSummary[]> => {
   const supabase = await createClient();
 

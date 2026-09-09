@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 import { CreateLeagueForm } from "@/components/dashboard/CreateLeagueForm";
 import { LeagueCard } from "@/components/dashboard/LeagueCard";
-import { getUserLeagues } from "@/lib/data/leagues";
+import { getOwnDisplayName, getUserLeagues } from "@/lib/data/leagues";
 import { createClient } from "@/lib/supabase/server";
 import { signOut } from "@/app/login/actions";
 
@@ -12,18 +12,26 @@ export default async function DashboardPage() {
   } = await supabase.auth.getUser();
   if (!user) redirect("/login");
 
-  const leagues = await getUserLeagues(user.id);
+  const [leagues, displayName] = await Promise.all([
+    getUserLeagues(user.id),
+    getOwnDisplayName(user.id),
+  ]);
 
   return (
     <div className="min-h-dvh bg-background px-4 py-8 sm:px-8">
       <div className="mx-auto flex w-full max-w-4xl flex-col gap-6">
         <header className="flex items-center justify-between">
           <span className="font-editorial text-2xl text-foreground">Catanero</span>
-          <form action={signOut}>
-            <button type="submit" className="text-sm text-muted hover:text-foreground">
-              Salir
-            </button>
-          </form>
+          <div className="flex items-center gap-3">
+            {displayName ? (
+              <span className="text-sm font-medium text-foreground">{displayName}</span>
+            ) : null}
+            <form action={signOut}>
+              <button type="submit" className="text-sm text-muted hover:text-foreground">
+                Salir
+              </button>
+            </form>
+          </div>
         </header>
 
         <section className="relative overflow-hidden rounded-[var(--radius-lg)] bg-carbon shadow-[var(--shadow-editorial)]">
