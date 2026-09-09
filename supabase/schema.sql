@@ -252,6 +252,101 @@ revoke all on function create_game(uuid, text, jsonb, timestamptz) from public;
 grant execute on function create_game(uuid, text, jsonb, timestamptz) to authenticated;
 
 -- ============================================================
+-- update_game: reemplaza todos los resultados de una partida ya
+-- cargada (jugadores, posiciones y puntos de CATAN), recalculando
+-- ranking_points igual que create_game. Se admite corregir partidas
+-- viejas o recientes por errores de carga; borra y vuelve a insertar
+-- game_results en vez de hacer update fila por fila para no arrastrar
+-- posiciones/jugadores que ya no corresponden.
+-- ============================================================
+
+create or replace function update_game(
+  p_game_id uuid,
+  p_results jsonb,
+  p_played_at timestamptz default null
+)
+returns void
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_league_id uuid;
+  v_result jsonb;
+  v_number_of_players int;
+  v_ranking_points numeric(3, 1);
+begin
+  select league_id into v_league_id from games where id = p_game_id;
+
+  if v_league_id is null then
+    raise exception 'No encontramos esa partida';
+  end if;
+
+  if not is_league_admin(v_league_id) then
+    raise exception 'No tenés permisos de administrador en esta liga';
+  end if;
+
+  v_number_of_players := jsonb_array_length(p_results);
+
+  if v_number_of_players < 3 or v_number_of_players > 6 then
+    raise exception 'Una partida debe tener entre 3 y 6 jugadores';
+  end if;
+
+  if (
+    select count(distinct (elem->>'position')::int)
+    from jsonb_array_elements(p_results) elem
+  ) <> v_number_of_players then
+    raise exception 'Las posiciones deben ser únicas';
+  end if;
+
+  if exists (
+    select 1 from jsonb_array_elements(p_results) elem
+    where (elem->>'position')::int < 1 or (elem->>'position')::int > v_number_of_players
+  ) then
+    raise exception 'Posición fuera de rango';
+  end if;
+
+  if exists (
+    select 1 from jsonb_array_elements(p_results) elem
+    where not exists (
+      select 1 from players
+      where players.id = (elem->>'player_id')::uuid
+        and players.league_id = v_league_id
+    )
+  ) then
+    raise exception 'Todos los jugadores deben pertenecer a la liga';
+  end if;
+
+  delete from game_results where game_id = p_game_id;
+
+  for v_result in select * from jsonb_array_elements(p_results)
+  loop
+    v_ranking_points := case
+      when (v_result->>'position')::int = 1 then v_number_of_players / 2.0
+      when (v_result->>'position')::int = v_number_of_players then -0.5
+      else 0
+    end;
+
+    insert into game_results (game_id, player_id, position, catan_points, ranking_points)
+    values (
+      p_game_id,
+      (v_result->>'player_id')::uuid,
+      (v_result->>'position')::int,
+      (v_result->>'catan_points')::int,
+      v_ranking_points
+    );
+  end loop;
+
+  if p_played_at is not null then
+    update games set played_at = p_played_at where id = p_game_id;
+  end if;
+end;
+$$;
+
+revoke all on function update_game(uuid, jsonb, timestamptz) from public;
+grant execute on function update_game(uuid, jsonb, timestamptz) to authenticated;
+
+-- ============================================================
 -- Invitar jugadores: get_league_preview + join_league.
 -- Un usuario autenticado que no es miembro no puede leer "leagues" por
 -- RLS, así que necesita una vía explícita para ver el nombre de una

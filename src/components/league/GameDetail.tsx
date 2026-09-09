@@ -33,12 +33,18 @@ export function GameDetail({ slug, game, players, canEditDate }: GameDetailProps
             {formatDateLong(game.playedAt)} · {numberOfPlayers} jugadores
           </p>
           {canEditDate ? (
-            <div className="mt-2">
+            <div className="mt-2 flex items-center gap-4">
               <EditGameDateControl
                 gameId={game.id}
                 slug={slug}
                 currentDate={game.playedAt.slice(0, 10)}
               />
+              <Link
+                href={`/league/${slug}/games/${game.id}/edit`}
+                className="text-xs font-medium text-primary hover:underline"
+              >
+                Editar partida
+              </Link>
             </div>
           ) : null}
           <div className="mt-2 flex items-center justify-between gap-4">

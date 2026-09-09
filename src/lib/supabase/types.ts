@@ -168,6 +168,14 @@ export interface Database {
         };
         Returns: string;
       };
+      update_game: {
+        Args: {
+          p_game_id: string;
+          p_results: CreateGameResultInput[];
+          p_played_at?: string | null;
+        };
+        Returns: undefined;
+      };
       get_league_preview: {
         Args: { p_slug: string };
         Returns: {

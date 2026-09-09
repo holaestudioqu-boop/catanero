@@ -8,7 +8,7 @@ import { PositionBadge } from "@/components/ui/PositionBadge";
 import { PointsPill } from "@/components/league/PointsPill";
 import { MAX_PLAYERS, MIN_PLAYERS, calculateRankingPoints } from "@/lib/domain/scoring";
 import type { Game, Player } from "@/lib/domain/types";
-import { createGameAction } from "@/app/league/[slug]/actions";
+import { createGameAction, updateGameAction } from "@/app/league/[slug]/actions";
 
 type Step = 1 | 2 | 3 | 4 | 5;
 
@@ -31,14 +31,31 @@ interface NewGameWizardProps {
   leagueId: string;
   slug: string;
   players: Player[];
+  existingGame?: Game;
 }
 
-export function NewGameWizard({ leagueId, slug, players }: NewGameWizardProps) {
+export function NewGameWizard({ leagueId, slug, players, existingGame }: NewGameWizardProps) {
+  const isEdit = existingGame != null;
+  const sortedExisting = useMemo(
+    () => [...(existingGame?.results ?? [])].sort((a, b) => a.position - b.position),
+    [existingGame]
+  );
+
   const [step, setStep] = useState<Step>(1);
-  const [selectedIds, setSelectedIds] = useState<string[]>([]);
-  const [order, setOrder] = useState<string[]>([]);
-  const [catanPoints, setCatanPoints] = useState<Record<string, string>>({});
-  const [playedAt, setPlayedAt] = useState(() => new Date().toLocaleDateString("en-CA"));
+  const [selectedIds, setSelectedIds] = useState<string[]>(
+    () => sortedExisting.map((r) => r.playerId)
+  );
+  const [order, setOrder] = useState<string[]>(() => sortedExisting.map((r) => r.playerId));
+  const [catanPoints, setCatanPoints] = useState<Record<string, string>>(() =>
+    Object.fromEntries(
+      sortedExisting
+        .filter((r) => r.catanPoints != null)
+        .map((r) => [r.playerId, String(r.catanPoints)])
+    )
+  );
+  const [playedAt, setPlayedAt] = useState(() =>
+    existingGame ? existingGame.playedAt.slice(0, 10) : new Date().toLocaleDateString("en-CA")
+  );
   const [submitting, setSubmitting] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
   const [savedGame, setSavedGame] = useState<Game | null>(null);
@@ -78,7 +95,9 @@ export function NewGameWizard({ leagueId, slug, players }: NewGameWizardProps) {
       };
     });
 
-    const { gameId, error } = await createGameAction(leagueId, slug, results, playedAt);
+    const { gameId, error } = existingGame
+      ? await updateGameAction(existingGame.id, slug, results, playedAt)
+      : await createGameAction(leagueId, slug, results, playedAt);
 
     if (error || !gameId) {
       setSaveError(error ?? "No pudimos guardar la partida. Probá de nuevo.");
@@ -163,11 +182,12 @@ export function NewGameWizard({ leagueId, slug, players }: NewGameWizardProps) {
           submitting={submitting}
           error={saveError}
           onSave={handleSave}
+          isEdit={isEdit}
         />
       ) : null}
 
       {step === 5 && savedGame ? (
-        <SavedStep slug={slug} game={savedGame} nameOf={nameOf} />
+        <SavedStep slug={slug} game={savedGame} nameOf={nameOf} isEdit={isEdit} />
       ) : null}
     </div>
   );
@@ -336,6 +356,7 @@ function ConfirmStep({
   submitting,
   error,
   onSave,
+  isEdit,
 }: {
   order: string[];
   nameOf: (id: string) => string;
@@ -345,6 +366,7 @@ function ConfirmStep({
   submitting: boolean;
   error: string | null;
   onSave: () => void;
+  isEdit: boolean;
 }) {
   const numberOfPlayers = order.length;
   return (
@@ -381,7 +403,7 @@ function ConfirmStep({
       </Card>
       {error ? <p className="text-sm text-danger">{error}</p> : null}
       <Button fullWidth onClick={onSave} disabled={submitting}>
-        {submitting ? "Guardando…" : "Guardar partida"}
+        {submitting ? "Guardando…" : isEdit ? "Guardar cambios" : "Guardar partida"}
       </Button>
     </div>
   );
@@ -391,10 +413,12 @@ function SavedStep({
   slug,
   game,
   nameOf,
+  isEdit,
 }: {
   slug: string;
   game: Game;
   nameOf: (id: string) => string;
+  isEdit: boolean;
 }) {
   const router = useRouter();
   const winner = game.results.find((r) => r.position === 1);
@@ -408,7 +432,9 @@ function SavedStep({
         ✓
       </span>
       <div>
-        <h1 className="font-editorial text-3xl text-foreground">Partida registrada</h1>
+        <h1 className="font-editorial text-3xl text-foreground">
+          {isEdit ? "Partida actualizada" : "Partida registrada"}
+        </h1>
         {winner ? (
           <p className="mt-2 text-muted">
             {nameOf(winner.playerId)} ganó y suma <PointsPill value={winnerPoints} /> puntos.

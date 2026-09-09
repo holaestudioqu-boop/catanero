@@ -235,3 +235,31 @@ export async function updateGameDate(
   revalidatePath(`/league/${slug}`);
   return { error: null };
 }
+
+export async function updateGameAction(
+  gameId: string,
+  slug: string,
+  results: CreateGameResultInput[],
+  playedAt?: string
+): Promise<CreateGameActionResult> {
+  const supabase = await createClient();
+
+  const { error } = await supabase.rpc("update_game", {
+    p_game_id: gameId,
+    p_results: results.map((r) => ({
+      player_id: r.playerId,
+      position: r.position,
+      catan_points: r.catanPoints ?? null,
+    })),
+    p_played_at: playedAt ? `${playedAt}T12:00:00` : null,
+  });
+
+  if (error) {
+    return { gameId: null, error: error.message };
+  }
+
+  revalidatePath(`/league/${slug}/games/${gameId}`);
+  revalidatePath(`/league/${slug}/games`);
+  revalidatePath(`/league/${slug}`);
+  return { gameId, error: null };
+}
