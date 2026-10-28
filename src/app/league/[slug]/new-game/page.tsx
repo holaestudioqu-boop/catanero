@@ -19,7 +19,7 @@ export default async function NewGamePage({
   if (!user) return null;
 
   const role = await getMembership(league.id, user.id);
-  if (role !== "admin") {
+  if (!role) {
     redirect(`/league/${slug}`);
   }
 

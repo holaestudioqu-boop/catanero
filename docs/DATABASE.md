@@ -60,8 +60,10 @@ una fila que un trigger crea recién después.
 ## Row Level Security
 
 Regla general: un usuario solo puede leer filas de ligas donde figura en
-`league_members`; escribir (crear partida, editar, eliminar, agregar
-jugador, cambiar configuración) requiere `role = 'admin'` en esa liga. Las
+`league_members`; escribir (editar o eliminar partidas, agregar jugador,
+cambiar configuración) requiere `role = 'admin'` en esa liga. La única
+excepción es **crear una partida**: `create_game` la permite a cualquier
+miembro de la liga, para que cargar resultados no dependa del admin. Las
 funciones `is_league_member()` e `is_league_admin()` en el schema
 encapsulan esa verificación para no repetirla en cada policy.
 

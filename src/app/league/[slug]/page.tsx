@@ -75,12 +75,10 @@ export default async function LeagueHomePage({
             </p>
           ) : null}
 
-          {role === "admin" ? (
-            <div className="mt-5 flex flex-wrap gap-2">
-              <LinkButton href={`/league/${slug}/new-game`}>+ Registrar partida</LinkButton>
-              <InviteLinkButton slug={slug} />
-            </div>
-          ) : null}
+          <div className="mt-5 flex flex-wrap gap-2">
+            <LinkButton href={`/league/${slug}/new-game`}>+ Registrar partida</LinkButton>
+            {role === "admin" ? <InviteLinkButton slug={slug} /> : null}
+          </div>
         </div>
       </div>
 
@@ -96,11 +94,7 @@ export default async function LeagueHomePage({
         ) : (
           <EmptyState
             title="Todavía no empezó la historia."
-            description={
-              role === "admin"
-                ? "Registrá la primera partida para empezar a construir el ranking."
-                : "Cuando un admin registre una partida, va a aparecer acá."
-            }
+            description="Registrá la primera partida para empezar a construir el ranking."
           />
         )}
       </section>

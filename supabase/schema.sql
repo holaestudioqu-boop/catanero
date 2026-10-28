@@ -164,8 +164,10 @@ $$;
 -- No confía en el cliente para nada de esto (sección 9 y 37 del spec).
 -- p_results: [{ "player_id": uuid, "position": int, "catan_points": int|null }, ...]
 -- p_played_at es opcional (default null = ahora): la partida se suele
--- cargar uno o dos días después de jugarse, así que el admin puede
--- elegir la fecha real en vez de que quede fijada al momento de carga.
+-- cargar uno o dos días después de jugarse, así que se puede elegir la
+-- fecha real en vez de que quede fijada al momento de carga.
+-- Cualquier miembro de la liga puede cargar partidas (no solo el
+-- admin); editar y borrar siguen siendo solo del admin.
 -- ============================================================
 
 drop function if exists create_game(uuid, text, jsonb);
@@ -187,8 +189,8 @@ declare
   v_number_of_players int;
   v_ranking_points numeric(3, 1);
 begin
-  if not is_league_admin(p_league_id) then
-    raise exception 'No tenés permisos de administrador en esta liga';
+  if not is_league_member(p_league_id) then
+    raise exception 'No sos miembro de esta liga';
   end if;
 
   v_number_of_players := jsonb_array_length(p_results);

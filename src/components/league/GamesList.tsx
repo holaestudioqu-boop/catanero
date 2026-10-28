@@ -7,10 +7,9 @@ interface GamesListProps {
   slug: string;
   players: Player[];
   games: Game[];
-  canRegister: boolean;
 }
 
-export function GamesList({ slug, players, games, canRegister }: GamesListProps) {
+export function GamesList({ slug, players, games }: GamesListProps) {
   return (
     <div className="flex flex-col gap-4">
       <div>
@@ -23,16 +22,8 @@ export function GamesList({ slug, players, games, canRegister }: GamesListProps)
       {games.length === 0 ? (
         <EmptyState
           title="Todavía no empezó la historia."
-          description={
-            canRegister
-              ? "Registrá la primera partida de la liga."
-              : "Cuando un admin registre una partida, va a aparecer acá."
-          }
-          action={
-            canRegister ? (
-              <LinkButton href={`/league/${slug}/new-game`}>Registrar la primera</LinkButton>
-            ) : undefined
-          }
+          description="Registrá la primera partida de la liga."
+          action={<LinkButton href={`/league/${slug}/new-game`}>Registrar la primera</LinkButton>}
         />
       ) : (
         <div className="flex flex-col gap-2">

@@ -1,7 +1,6 @@
 import { notFound } from "next/navigation";
 import { GamesList } from "@/components/league/GamesList";
-import { getGames, getLeagueBySlug, getMembership, getPlayers } from "@/lib/data/leagues";
-import { createClient } from "@/lib/supabase/server";
+import { getGames, getLeagueBySlug, getPlayers } from "@/lib/data/leagues";
 
 export default async function GamesPage({
   params,
@@ -12,19 +11,7 @@ export default async function GamesPage({
   const league = await getLeagueBySlug(slug);
   if (!league) notFound();
 
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) return null;
+  const [players, games] = await Promise.all([getPlayers(league.id), getGames(league.id)]);
 
-  const [role, players, games] = await Promise.all([
-    getMembership(league.id, user.id),
-    getPlayers(league.id),
-    getGames(league.id),
-  ]);
-
-  return (
-    <GamesList slug={slug} players={players} games={games} canRegister={role === "admin"} />
-  );
+  return <GamesList slug={slug} players={players} games={games} />;
 }
