@@ -46,3 +46,15 @@ export function formatDateLong(iso: string): string {
   }).format(new Date(iso));
   return formatted;
 }
+
+export function formatRelativeTime(iso: string, now: number = Date.now()): string {
+  const diffSeconds = Math.round((new Date(iso).getTime() - now) / 1000);
+  const abs = Math.abs(diffSeconds);
+  const rtf = new Intl.RelativeTimeFormat("es-AR", { numeric: "auto" });
+
+  if (abs < 60) return "recién";
+  if (abs < 3600) return rtf.format(Math.round(diffSeconds / 60), "minute");
+  if (abs < 86400) return rtf.format(Math.round(diffSeconds / 3600), "hour");
+  if (abs < 86400 * 7) return rtf.format(Math.round(diffSeconds / 86400), "day");
+  return formatDateShort(iso);
+}

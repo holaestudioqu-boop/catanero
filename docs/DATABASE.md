@@ -125,6 +125,33 @@ policy `update_games_as_admin` ya lo permite, no hace falta RPC. Las
 fechas se guardan siempre al mediodía UTC (`T12:00:00`) para que el día
 de calendario no cambie sin importar en qué huso horario se lea.
 
+## Comunidad: muro, comentarios y reacciones
+
+Tres tablas, todas con RLS por liga (`is_league_member`):
+
+- `league_posts`: mensajes del muro (1–500 caracteres).
+- `game_comments`: comentarios colgados de una partida; se borran en
+  cascada si se elimina la partida.
+- `reactions`: un emoji (👍 🔥 😂 👏) sobre un mensaje **o** una partida
+  (`check ((post_id is null) <> (game_id is null))`). Dos índices únicos
+  parciales impiden reaccionar dos veces con el mismo emoji; tocar de
+  nuevo lo saca (lo resuelve `toggleReaction`).
+
+Permisos: cualquier miembro escribe, comenta y reacciona (siempre como sí
+mismo: `user_id = auth.uid()`). Cada uno borra lo suyo y el admin puede
+borrar cualquier mensaje o comentario. Los `with check` de comentarios y
+reacciones verifican además que la partida o el mensaje pertenezca a la
+misma liga, para que nadie cuelgue contenido en una liga ajena.
+
+Los avisos "Se cargó una partida: ganó X" del muro **no se guardan**: se
+arman en `muro/page.tsx` leyendo `games` (por `created_at`, no por la
+fecha de juego). Así no hay triggers y el aviso siempre refleja el
+ganador actual si la partida se edita, y desaparece si se elimina.
+
+Los perfiles solo son legibles por su dueño, así que el nombre de cada
+autor se resuelve desde `players.user_id` dentro de la liga
+(`getAuthorNames` en `src/lib/data/community.ts`).
+
 ## Aplicar el schema
 
 1. Crear un proyecto nuevo en [supabase.com](https://supabase.com) (plan Free).

@@ -156,6 +156,66 @@ export interface Database {
         };
         Relationships: [];
       };
+      league_posts: {
+        Row: {
+          id: string;
+          league_id: string;
+          user_id: string;
+          body: string;
+          created_at: string;
+        };
+        Insert: {
+          league_id: string;
+          user_id: string;
+          body: string;
+        };
+        Update: {
+          body?: string;
+        };
+        Relationships: [];
+      };
+      game_comments: {
+        Row: {
+          id: string;
+          league_id: string;
+          game_id: string;
+          user_id: string;
+          body: string;
+          created_at: string;
+        };
+        Insert: {
+          league_id: string;
+          game_id: string;
+          user_id: string;
+          body: string;
+        };
+        Update: {
+          body?: string;
+        };
+        Relationships: [];
+      };
+      reactions: {
+        Row: {
+          id: string;
+          league_id: string;
+          user_id: string;
+          post_id: string | null;
+          game_id: string | null;
+          emoji: string;
+          created_at: string;
+        };
+        Insert: {
+          league_id: string;
+          user_id: string;
+          post_id?: string | null;
+          game_id?: string | null;
+          emoji: string;
+        };
+        Update: {
+          emoji?: string;
+        };
+        Relationships: [];
+      };
     };
     Views: Record<string, never>;
     Functions: {

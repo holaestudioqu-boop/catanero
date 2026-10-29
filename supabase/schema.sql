@@ -629,3 +629,114 @@ create policy "insert_settings_as_admin" on league_settings for insert
 drop policy if exists "update_settings_as_admin" on league_settings;
 create policy "update_settings_as_admin" on league_settings for update
   using (is_league_admin(league_id));
+
+-- ============================================================
+-- Comunidad: muro de la liga, comentarios en partidas y reacciones
+--
+-- Cualquier miembro puede escribir, comentar y reaccionar. Cada
+-- uno borra lo suyo; el admin puede borrar cualquier mensaje o
+-- comentario (moderación). Las reacciones solo las borra quien
+-- las puso (tocar de nuevo el mismo emoji las saca).
+-- Las partidas cargadas aparecen en el muro como avisos sin
+-- guardar nada extra: se arman leyendo `games`.
+-- ============================================================
+
+create table if not exists league_posts (
+  id uuid primary key default gen_random_uuid(),
+  league_id uuid not null references leagues(id) on delete cascade,
+  user_id uuid not null references auth.users(id) on delete cascade,
+  body text not null check (char_length(btrim(body)) between 1 and 500),
+  created_at timestamptz not null default now()
+);
+create index if not exists league_posts_league_created_idx
+  on league_posts (league_id, created_at desc);
+
+create table if not exists game_comments (
+  id uuid primary key default gen_random_uuid(),
+  league_id uuid not null references leagues(id) on delete cascade,
+  game_id uuid not null references games(id) on delete cascade,
+  user_id uuid not null references auth.users(id) on delete cascade,
+  body text not null check (char_length(btrim(body)) between 1 and 500),
+  created_at timestamptz not null default now()
+);
+create index if not exists game_comments_game_created_idx
+  on game_comments (game_id, created_at);
+
+-- Una reacción apunta a un mensaje del muro O a una partida (nunca a ambos).
+create table if not exists reactions (
+  id uuid primary key default gen_random_uuid(),
+  league_id uuid not null references leagues(id) on delete cascade,
+  user_id uuid not null references auth.users(id) on delete cascade,
+  post_id uuid references league_posts(id) on delete cascade,
+  game_id uuid references games(id) on delete cascade,
+  emoji text not null check (emoji in ('👍', '🔥', '😂', '👏')),
+  created_at timestamptz not null default now(),
+  check ((post_id is null) <> (game_id is null))
+);
+create unique index if not exists reactions_post_unique
+  on reactions (post_id, user_id, emoji) where post_id is not null;
+create unique index if not exists reactions_game_unique
+  on reactions (game_id, user_id, emoji) where game_id is not null;
+
+grant select, insert, delete on league_posts, game_comments, reactions to authenticated;
+
+alter table league_posts enable row level security;
+alter table game_comments enable row level security;
+alter table reactions enable row level security;
+
+drop policy if exists "select_posts_as_member" on league_posts;
+create policy "select_posts_as_member" on league_posts for select
+  using (is_league_member(league_id));
+drop policy if exists "insert_posts_as_member" on league_posts;
+create policy "insert_posts_as_member" on league_posts for insert
+  with check (user_id = auth.uid() and is_league_member(league_id));
+drop policy if exists "delete_posts_own_or_admin" on league_posts;
+create policy "delete_posts_own_or_admin" on league_posts for delete
+  using (user_id = auth.uid() or is_league_admin(league_id));
+
+-- El with check de comentarios y reacciones también verifica que la
+-- partida / el mensaje pertenezca a esa misma liga, para que nadie
+-- cuelgue cosas de una liga ajena.
+drop policy if exists "select_comments_as_member" on game_comments;
+create policy "select_comments_as_member" on game_comments for select
+  using (is_league_member(league_id));
+drop policy if exists "insert_comments_as_member" on game_comments;
+create policy "insert_comments_as_member" on game_comments for insert
+  with check (
+    user_id = auth.uid()
+    and is_league_member(league_id)
+    and exists (
+      select 1 from games
+      where games.id = game_comments.game_id
+        and games.league_id = game_comments.league_id
+    )
+  );
+drop policy if exists "delete_comments_own_or_admin" on game_comments;
+create policy "delete_comments_own_or_admin" on game_comments for delete
+  using (user_id = auth.uid() or is_league_admin(league_id));
+
+drop policy if exists "select_reactions_as_member" on reactions;
+create policy "select_reactions_as_member" on reactions for select
+  using (is_league_member(league_id));
+drop policy if exists "insert_reactions_as_member" on reactions;
+create policy "insert_reactions_as_member" on reactions for insert
+  with check (
+    user_id = auth.uid()
+    and is_league_member(league_id)
+    and (
+      (post_id is not null and exists (
+        select 1 from league_posts
+        where league_posts.id = reactions.post_id
+          and league_posts.league_id = reactions.league_id
+      ))
+      or
+      (game_id is not null and exists (
+        select 1 from games
+        where games.id = reactions.game_id
+          and games.league_id = reactions.league_id
+      ))
+    )
+  );
+drop policy if exists "delete_reactions_own" on reactions;
+create policy "delete_reactions_own" on reactions for delete
+  using (user_id = auth.uid());

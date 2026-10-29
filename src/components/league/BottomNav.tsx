@@ -12,6 +12,7 @@ const items = [
   { key: "ranking", label: "Ranking", href: (slug: string) => `/league/${slug}` },
   { key: "games", label: "Partidas", href: (slug: string) => `/league/${slug}/games` },
   { key: "new-game", label: "Nueva", href: (slug: string) => `/league/${slug}/new-game` },
+  { key: "muro", label: "Muro", href: (slug: string) => `/league/${slug}/muro` },
   { key: "stats", label: "Stats", href: (slug: string) => `/league/${slug}/stats` },
   { key: "players", label: "Jugadores", href: (slug: string) => `/league/${slug}/players` },
 ] as const;

@@ -1,21 +1,38 @@
 import Link from "next/link";
 import { Card } from "@/components/ui/Card";
 import { CatanPointsBadge } from "@/components/league/CatanPointsBadge";
+import { CommentSection } from "@/components/league/CommentSection";
 import { DeleteGameButton } from "@/components/league/DeleteGameButton";
 import { EditGameDateControl } from "@/components/league/EditGameDateControl";
 import { PointsPill } from "@/components/league/PointsPill";
+import { ReactionBar } from "@/components/league/ReactionBar";
 import { calculateRankingPoints } from "@/lib/domain/scoring";
 import { formatDateLong } from "@/lib/format";
+import type { GameComment } from "@/lib/data/community";
+import type { ReactionSummary } from "@/lib/domain/community";
 import type { Game, Player } from "@/lib/domain/types";
 
 interface GameDetailProps {
   slug: string;
+  leagueId: string;
   game: Game;
   players: Player[];
   canManage: boolean;
+  viewerId: string;
+  reactions: ReactionSummary;
+  comments: GameComment[];
 }
 
-export function GameDetail({ slug, game, players, canManage }: GameDetailProps) {
+export function GameDetail({
+  slug,
+  leagueId,
+  game,
+  players,
+  canManage,
+  viewerId,
+  reactions,
+  comments,
+}: GameDetailProps) {
   const nameOf = (playerId: string) =>
     players.find((p) => p.id === playerId)?.displayName ?? playerId;
   const numberOfPlayers = game.results.length;
@@ -92,6 +109,23 @@ export function GameDetail({ slug, game, players, canManage }: GameDetailProps) 
             <DeleteGameButton gameId={game.id} slug={slug} />
           </div>
         ) : null}
+      </Card>
+
+      <Card className="flex flex-col gap-5">
+        <ReactionBar
+          leagueId={leagueId}
+          slug={slug}
+          target={{ kind: "game", id: game.id }}
+          reactions={reactions}
+        />
+        <CommentSection
+          leagueId={leagueId}
+          gameId={game.id}
+          slug={slug}
+          comments={comments}
+          viewerId={viewerId}
+          isAdmin={canManage}
+        />
       </Card>
     </div>
   );
