@@ -103,3 +103,24 @@ export function sortRanking(stats: PlayerStats[]): PlayerStats[] {
     return 0;
   });
 }
+
+/**
+ * Los que más veces salieron últimos (hasta `size`). Solo entran quienes
+ * salieron últimos al menos una vez. Desempate: mayor proporción de
+ * últimos sobre partidas jugadas (a igual cantidad, es peor haber jugado
+ * menos) y, por último, orden alfabético para que el resultado sea estable.
+ */
+export function buildLastPlacePodium(stats: PlayerStats[], size = 3): PlayerStats[] {
+  return stats
+    .filter((s) => s.lastPlaceCount > 0)
+    .sort((a, b) => {
+      if (b.lastPlaceCount !== a.lastPlaceCount) return b.lastPlaceCount - a.lastPlaceCount;
+
+      const aRate = a.lastPlaceCount / a.gamesPlayed;
+      const bRate = b.lastPlaceCount / b.gamesPlayed;
+      if (bRate !== aRate) return bRate - aRate;
+
+      return a.displayName.localeCompare(b.displayName, "es");
+    })
+    .slice(0, size);
+}

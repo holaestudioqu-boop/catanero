@@ -5,8 +5,9 @@ import { EmptyState } from "@/components/ui/EmptyState";
 import { LinkButton } from "@/components/ui/LinkButton";
 import { GameSummaryCard } from "@/components/league/GameSummaryCard";
 import { InviteLinkButton } from "@/components/league/InviteLinkButton";
+import { LastPlacePodium } from "@/components/league/LastPlacePodium";
 import { RankingTable } from "@/components/league/RankingTable";
-import { buildPlayerStats } from "@/lib/domain/ranking";
+import { buildLastPlacePodium, buildPlayerStats } from "@/lib/domain/ranking";
 import { formatPointsPlain } from "@/lib/format";
 import {
   getGames,
@@ -40,6 +41,7 @@ export default async function LeagueHomePage({
   ]);
 
   const stats = buildPlayerStats(players, games);
+  const lastPlacePodium = buildLastPlacePodium(stats);
   const me = viewerPlayer ? stats.find((s) => s.playerId === viewerPlayer.id) : undefined;
   const myPosition = me ? stats.findIndex((s) => s.playerId === me.playerId) + 1 : null;
   const lastGame = games[0];
@@ -98,6 +100,8 @@ export default async function LeagueHomePage({
           />
         )}
       </section>
+
+      <LastPlacePodium podium={lastPlacePodium} />
 
       <section className="flex flex-col gap-3">
         <h2 className="font-editorial text-2xl text-foreground">Última partida</h2>

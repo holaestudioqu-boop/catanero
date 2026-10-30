@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { buildPlayerStats } from "./ranking";
+import { buildLastPlacePodium, buildPlayerStats } from "./ranking";
 import type { Game, Player } from "./types";
 
 const players: Player[] = [
@@ -70,5 +70,61 @@ describe("buildPlayerStats", () => {
     ];
     const stats = buildPlayerStats(players, games);
     expect(stats[0].playerId).toBe("pedro");
+  });
+});
+
+describe("buildLastPlacePodium", () => {
+  const game = (id: string, order: string[]): Game => ({
+    id,
+    playedAt: "2026-01-01",
+    results: order.map((playerId, i) => ({ playerId, position: i + 1 })),
+  });
+
+  it("ordena por cantidad de veces que salieron últimos y deja afuera a quien nunca lo fue", () => {
+    const games = [
+      game("g1", ["pedro", "willy", "juan", "guille"]),
+      game("g2", ["pedro", "juan", "willy", "guille"]),
+      game("g3", ["pedro", "guille", "willy", "juan"]),
+      game("g4", ["willy", "pedro", "guille", "juan"]),
+    ];
+
+    const podium = buildLastPlacePodium(buildPlayerStats(players, games));
+
+    expect(podium.map((s) => s.playerId)).toEqual(["guille", "juan"]);
+    expect(podium.map((s) => s.lastPlaceCount)).toEqual([2, 2]);
+  });
+
+  it("desempata por proporción de últimos sobre partidas jugadas y luego por nombre", () => {
+    const games = [
+      game("g1", ["pedro", "guille", "willy", "juan"]),
+      game("g2", ["pedro", "guille", "juan", "willy"]),
+      game("g3", ["willy", "guille", "pedro"]),
+    ];
+
+    // juan: último 1 de 2 partidas. willy: 1 de 3. pedro: 1 de 3.
+    // willy y pedro empatan en proporción, así que desempata el nombre.
+    const podium = buildLastPlacePodium(buildPlayerStats(players, games));
+
+    expect(podium.map((s) => s.playerId)).toEqual(["juan", "pedro", "willy"]);
+  });
+
+  it("limita el podio a 3 y no modifica el arreglo recibido", () => {
+    const games = [
+      game("g1", ["pedro", "willy", "juan", "guille"]),
+      game("g2", ["guille", "pedro", "willy", "juan"]),
+      game("g3", ["juan", "guille", "pedro", "willy"]),
+      game("g4", ["willy", "juan", "guille", "pedro"]),
+    ];
+
+    const stats = buildPlayerStats(players, games);
+    const snapshot = stats.map((s) => s.playerId);
+    const podium = buildLastPlacePodium(stats);
+
+    expect(podium).toHaveLength(3);
+    expect(stats.map((s) => s.playerId)).toEqual(snapshot);
+  });
+
+  it("devuelve vacío si todavía nadie salió último", () => {
+    expect(buildLastPlacePodium(buildPlayerStats(players, []))).toEqual([]);
   });
 });
